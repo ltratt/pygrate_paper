@@ -5,15 +5,80 @@
 \maketitle
 
 \begin{abstract}
-Abstract
+\noindent
+Many changes one might wish to make to a programming language break existing
+programs, causing disruption and complaint amongst users. Widely used
+languages tend to forego such changes, causing them to slowly ossify as
+ever more of the language is considered unchangeable. In this paper we
+consider the most disruptive change to a mainstream programming language in
+living memory: the transition from Python 2 to Python 3. We introduce a
+new technique, \emph{Temporary Migration Variants} (TMV), which allow
+code to be gradually migrated between versions until the TMV is
+no longer needed. We implement TMVs for both CPython 2.x and CPython 3.x which
+allow code to run with forwards/backwards compatible fixes and
+warnings. Our simple TMVs, though neither complete or perfect, suggest that
+it may be possible to radically evolve languages if we provide good
+quality transition routes that allow gradual migration of code.
 \end{abstract}
 
 
 \section{Introduction}
 
-Introduction
+Programming languages evolve, either to fix existing imperfections, or because
+of changes in the wider computing context. However, users -- for whom programming
+languages are generally a means rather than an end -- often resist evolution,
+either because they worry that the language will become too complicated,
+or because their existing programs will no longer run correctly. In this paper
+we are motivated by the latter challenge: users often have large, long-lived
+codebases that are critical to their purposes and which they must keep running.
 
-\cite{politz13monty}
+Though rarely discussed in the literature, there are many instances in
+programming language history of users forcing a language's designers to drop
+proposed breaking changes. There are also instances, though harder to quantify,
+of languages scaring away potential users after developing a reputation for
+frequent breaking changes.
+
+Perhaps surprisingly, there are few automated tools available to assist in
+migrating programs between language versions. The TXL transformation language
+was designed to help evolve the (now defunct) Turing
+language~\cite{cordy06txl}. Some languages ship with tools that can fix some
+now-changed idioms (e.g.~Python's \texttt{2to3} tool or Rust's \texttt{cargo
+fix}), though such tools tend only to fix relatively simple syntactic
+changes.
+
+Our inability to evolve programs as languages change imposes costs on languages:
+some kinds of evolution, though highly desirable, are perceived as too disruptive
+for users to be tolerated. Many aspects of languages tend to ossify as a result.
+
+In this paper we show a new approach to language migration using
+\emph{Temporary Migration Variants}: throw-away variants of the `old' and `new'
+versions of a language which enable smoother migration between the two. As well
+as traditional, simple, static warnings of incompatibilities, TMVs aim to
+smooth the migration of changes which can only be detected dynamically. We
+backwards and forward ports features between both versions, warning users of
+unsupported, or changed, features while still allowing programs to run. Once
+all warnings are fixed, the TMVs can be thrown away, and the migration is
+complete.
+
+In this paper we show how TMVs can ease migration in the face of the most
+disruptive change to a mainstream language in living memory: the transition
+from Python 2 to Python 3. We create two TMVs: \pygratetwo, a variant of
+CPython 2.7 which warns when users use features that are missing or
+incompatible in Python 3.x, and which backports some features from Python 3.x;
+and \pygratethree, a variant of CPython 3.12 which forwards ports some features
+from Python 2.x, warning when they are used. In essence, \pygratetwo and
+\pygratethree significantly narrow the gap between Python 2 and Python 3: it
+means that programs can be kept running during most of the migration process,
+though there is still a `gap' between \pygratetwo and \pygratethree. We migrate
+several programs \laurie{twisted?}, showing that our TMVs do meaningfully help
+migration.
+
+This paper thus serves to both introduce the concept of TMVs and a case study
+of their use. Although it is important not to over-generalise from a single
+example, we believe that \pygratetwo and \pygratethree show that adapting both
+the old and new versions of a language meaningfully eases migration. This may
+prove useful for other languages, including languages very different from
+Python, in future migrations.
 
 \bibliographystyle{plain}
 \bibliography{bib}
