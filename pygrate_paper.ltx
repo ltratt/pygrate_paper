@@ -9,14 +9,14 @@
 Many changes one might wish to make to a programming language break existing
 programs, causing disruption and complaint amongst users. Widely used
 languages tend to forego such changes, causing them to slowly ossify as
-ever more of the language is considered unchangeable. In this paper we
+ever more of the language is considered unchangeable. In this paper, we
 consider the most disruptive change to a mainstream programming language in
 living memory: the transition from Python 2 to Python 3. We introduce a
-new technique, \emph{Temporary Migration Variants} (TMV), which allow
+new technique, \emph{Temporary Migration Variants} (TMV), which allows
 code to be gradually migrated between versions until the TMV is
 no longer needed. We implement TMVs for both CPython 2.x and CPython 3.x which
-allow code to run with forwards/backwards compatible fixes and
-warnings. Our simple TMVs, though neither complete or perfect, suggest that
+allow code to run with forward/backward compatible fixes and
+warnings. Our simple TMVs, though neither complete nor perfect, suggest that
 it may be possible to radically evolve languages if we provide good
 quality transition routes that allow gradual migration of code.
 \end{abstract}
@@ -55,7 +55,7 @@ In this paper we show a new approach to language migration using
 versions of a language which enable smoother migration between the two. As well
 as traditional, simple, static warnings of incompatibilities, TMVs aim to
 smooth the migration of changes which can only be detected dynamically. We
-backwards and forward ports features between both versions, warning users of
+backward and forward port features between both versions, warning users of
 unsupported, or changed, features while still allowing programs to run. Once
 all warnings are fixed, the TMVs can be thrown away, and the migration is
 complete.
@@ -70,7 +70,8 @@ from Python 2.x, warning when they are used. In essence, \pygratetwo and
 \pygratethree significantly narrow the gap between Python 2 and Python 3: it
 means that programs can be kept running during most of the migration process,
 though there is still a `gap' between \pygratetwo and \pygratethree. We migrate
-several programs \laurie{twisted?}, showing that our TMVs do meaningfully help
+several programs \emph{Twisted}, an event-drives networking engine
+implemented in Python, showing that our TMVs do meaningfully help
 migration.
 
 This paper thus serves to both introduce the concept of TMVs and a case study
@@ -78,7 +79,175 @@ of their use. Although it is important not to over-generalise from a single
 example, we believe that \pygratetwo and \pygratethree show that adapting both
 the old and new versions of a language meaningfully eases migration. This may
 prove useful for other languages, including languages very different from
-Python, in future migrations.
+Python, in future migrations. By doing so, this paper makes the following
+main contributions:
+
+\begin{itemize}
+    \item A technique to allow programs to gradually migrate to a new 
+    version of a programming language.
+    \item A case study of using this technique to port 
+    two real-world Python program namely, Twisted , a popular library based on PyPI downloads.
+    \item A discussion of possible outcomes of similar 
+    efforts towards automatic migration of Python 2 
+    programs to Python 3.
+\end{itemize}
+
+\section{Program Migration}
+
+User applications and programs can be modified in response to backward incompatible
+changes in the language they are implemented in or even the need to migrate the 
+implementation to a completely new programming language. In both cases, the common
+objectives are teo fold, first to support any new syntax and secondly, to synchronise
+semantics.
+
+Migration of programs from one programming language to another is much more invasive,
+requiring the extensive use of higher order abstractions like abstract syntax tress (AST)
+or parse trees, and non-trivial code transformations. Most of the challenges stem from 
+reconciling semantics like static Vs dynamic typing, functional vs non functional etc.,
+between the source and target language.
+
+In contrast, when a new version of a programming language introduces backward incompatible
+changes, while it is not perfect to conclude in all cases, migration is not as invasive in 
+most cases. However, as the Python ecosystem witnessed in the Python 2 to Python 3 case, 
+languages can evolve radically in both syntax and semantics leading to technical challenges
+relatively equivalent to a new language all together.
+
+In both these cases, migration of affected user appliations requires that either automated
+tools or manual interventions identify the new patterns through \emph{pattern analysis}, 
+port the program to match the new syntax and semantics through \emph{source code transformations}
+and in some cases just \emph{backporting} of patches from the newer version of the language to the
+old version that the user program is based on.
+
+
+\subsection{Program Pattern Analysis}
+
+Existing work has pattern languages like TXl~\cite{cordy06txl} and frameworks SCRUPLE~\cite{paulscruple} which
+identify certain patterns in the program to be ported, transforming the programs according
+to specified transformation rules.
+
+Pattern analysis involves viewing or converting the source code in an intermediate form that
+abates pattern identification. the two common cases involve, either converting the program into
+a parse tree and feeding the modified parse tree to a compiler of the target language/version
+or viewing the source code as a stream of strings~\cite{Kontogianniscodemigration}.
+
+Pattern idenfication for program migration is mostly achieved through pattern matching of the
+original source code by matching strings and regular expressions~\cite{Kontogianniscodemigration} 
+to identify statements that require modification to the target syntax. Tradititional pattern 
+maching can be extended genenerating parametized suffix tree introducing parametized strings 
+and pattern matching~\cite{bakerparampatternmatch, Baker1995ParameterizedPMAndBoyer} to for 
+example identify duplicates in the code.
+
+The Boyer-Moore-Type algorithm~\cite{fastboyer} have been used to 
+perform efficient strings matching by comparing patterns with text identifying patterns 
+that can cause a shift rule to be invoked on the text from left to right or vice versa 
+before or after comparison to the pattern~\cite{}. The original Boyer-Moore-Type algorithm 
+has gone through modifcations producing variations that make it run 
+faster~\cite{Baker1995ParameterizedPMAndBoyer, , }.
+
+Patterns can also be identified through hashing algorithms that use finger print computations
+to search for any source code changes or similarities between the source and target 
+user programs~\cite{fastboyer}.
+
+Patterns can equally be identified by maintaining and browsing a program database of the user 
+application, making queries on the code through the database on the files, functions and 
+variables~\cite{}.
+
+
+\subsection{Source Code Transformation}
+
+For large code bases, the main aim of code transformation 
+tooling~\cite{guojavatransformations, Kontogianniscodemigration} 
+is to make migration of extension modules to a new API a feasible 
+alternative, with strong syntactical guarantees. Semantic guarantees
+are harder and thorough testing is required to verify the correctness
+of the generated code. 
+
+We achieve code transformations through a specification using \emph{rules}, 
+in the following format: \\
+
+\lstinline{[pattern : action]} \\
+
+The first part of a rule specification is a pattern in the code. The second corresponds to 
+the steps or procedures that must be taken when the first part matches. For example, 
+when performing the transformation for a block of code, the operation that manages the 
+conversion of a \lstinline{Statement} is invoked. A matching procedure isolates 
+the \lstinline{Statement} kind to be transformed and the relevant conversion 
+function is invoked.
+
+\subsection{Patch Backporting}
+
+When languages release new versions, it is common to maintain older versions in a branch
+for use by programs that can not adopt early to new versions. Interventions either automated
+or manual are used to port some critical features like security patches from the new version 
+to the old version~\cite{Shariffdeenbackporting}.
+
+Backporting doesnt modfy the user program, instead the language is modified but depending
+on the level of compatibility of the ported patch, the program can be modified.
+
+\section{Temporary Migration Variants}
+
+We want to make it easier to migrate large Python 2 programs to Python3.
+The problem is that it’s difficult to keep a program running during this 
+migration period – and if a program isn’t runnable it’s hard to have 
+confidence that the changes being made to it are correct.
+
+Why is this difficult? It’s because running Python2 code on Python3 rarely works: 
+sometimes the minimal changes that need to be made are significant and during that 
+time the program works neither on Python2 nor Python 3. Put another way, there is a 
+porting chasm between Python2 and Python3: we want to substantially reduce, and 
+perhaps even eliminate, that chasm. We can reduce the chasm in both directions: 
+making Python2 support more Python3 idioms; and making Python3 support more Python2 
+idioms. In both cases the aim is that this extra support is temporary: we don’t want 
+users to get stuck in our mutant Python versions forever, but to use them as a stepping 
+stone towards full, manageable, migration.
+
+\subsection{Migration Principle}
+
+Aim: we would like to give warnings that the user can use to adjust 
+their code easily, rather than syntax errors that require complicated 
+changes.
+
+Assumption: we expect the user to run all their code under pygrate2, 
+and fix all warnings. When they’ve done that, they should run their 
+code under pygrate3 and fix all warnings. At that point we hope that 
+they can run their code unchanged in python3.
+
+The general rationale is to by default issue warnings in pygrate2
+for as many cases as is technically possible. In some exceptions 
+we decide to move the warnings to pygrate3 under the following 
+circumstances:
+
+\begin{itemize}
+\item Precision
+\item Implementation constraints
+\end{itemize}
+
+\paragraph*{Precision}
+
+Depending on what changed in either syntax or semantics between 
+Python 2 and 3, it is possible that warning in pygrate3 will give 
+us an opportunity to warn more accurately, with 
+less false positives. This in turn means  less warnings to deal with 
+for the user. For example, if a method M1 in python2 changes its name 
+to M2 in python3, we get more false positives by adding M2 as an alias 
+in pygrate2 than we do adding M1 as an alias in pygrate3. Note that 
+aliasing is the best case scenario. However, sometimes we also have to 
+monitor the engineering trade offs of supporting the M1 syntax in pygrate3 
+for the warning purposes, it may be just impossible for both M1 And M2 to 
+coexist, case in point strings.
+
+\paragraph*{Implementation constraints}
+
+When Python transitioned to Python 3, not only did the syntax and semantics change, but the
+Core team also took time to re-organize and clean up the implementation. It is not a black 
+and white decision to judge whether all decisions made in pygrate3 are cleaner. In general 
+several parts of the code are cleaner, some equally less modular and in general other parts 
+introduce complexity.
+
+Modular code is generally easier to accommodate when warning compared to slots. When we 
+have to warn for features exposed as slots we have to either look for a version (pygrate2 
+or pygrate3) with better modularity or change the implementation to be modular.
+
 
 \bibliographystyle{plain}
 \bibliography{bib}
