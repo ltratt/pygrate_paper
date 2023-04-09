@@ -8,17 +8,18 @@
 \noindent
 Many changes one might wish to make to a programming language break existing
 programs, causing disruption and complaint amongst users. Widely used
-languages tend to forego such changes, causing them to slowly ossify as
+find it increasingly difficult to make such changes, causing them to slowly ossify as
 ever more of the language is considered unchangeable. In this paper, we
-consider the most disruptive change to a mainstream programming language in
-living memory: the transition from Python 2 to Python 3. We introduce a
-new technique, \emph{Temporary Migration Variants} (TMV), which allows
-code to be gradually migrated between versions until the TMV is
+consider a notably disruptive change to a mainstream programming language:
+the transition from Python 2 to Python 3. We introduce
+the idea of \emph{Temporary Migration Variants} (TMV) --- intermediate
+language versions which which allow
+code to be gradually migrated until the TMV
 no longer needed. We implement TMVs for both CPython 2.x and CPython 3.x which
 allow code to run with forward/backward compatible fixes and
-warnings. Our simple TMVs, though neither complete nor perfect, suggest that
-it may be possible to radically evolve languages if we provide good
-quality transition routes that allow gradual migration of code.
+warnings. Our simple TMVs, though neither complete or perfect, suggest that
+it may be possible to keep evolving languages if we provide the ability
+for users to gradually migrate their code from one version to another.
 \end{abstract}
 
 
@@ -39,28 +40,25 @@ of languages scaring away potential users after developing a reputation for
 frequent breaking changes.
 
 Perhaps surprisingly, there are few automated tools available to assist in
-migrating programs between language versions. The TXL transformation language
-was designed to help evolve the (now defunct) Turing
-language~\cite{cordy06txl}. Some languages ship with tools that can fix some
+migrating programs between language versions. Some languages ship with tools that can fix some
 now-changed idioms (e.g.~Python's \texttt{2to3} tool or Rust's \texttt{cargo
-fix}), though such tools tend only to fix relatively simple syntactic
+fix}), though these tend only to fix relatively simple syntactic
 changes.
 
 Our inability to evolve programs as languages change imposes costs on languages:
 some kinds of evolution, though highly desirable, are perceived as too disruptive
 for users to be tolerated. Many aspects of languages tend to ossify as a result.
 
-In this paper we show a new approach to language migration using
+In this paper we introduce the idea of
 \emph{Temporary Migration Variants}: throw-away variants of the `old' and `new'
 versions of a language which enable smoother migration between the two. As well
 as traditional, simple, static warnings of incompatibilities, TMVs aim to
-smooth the migration of changes which can only be detected dynamically. We
-backward and forward port features between both versions, warning users of
+smooth the migration of changes which can only be detected dynamically.
+Features can be backwards or forward ported between both versions, warning users of
 unsupported, or changed, features while still allowing programs to run. Once
-all warnings are fixed, the TMVs can be thrown away, and the migration is
-complete.
+all warnings are fixed, the TMVs have done their job, and can be discarded.
 
-In this paper we show how TMVs can ease migration in the face of the most
+In this paper we show how TMVs can smooth migration in the face of the most
 disruptive change to a mainstream language in living memory: the transition
 from Python 2 to Python 3. We create two TMVs: \pygratetwo, a variant of
 CPython 2.7 which warns when users use features that are missing or
@@ -70,14 +68,14 @@ from Python 2.x, warning when they are used. In essence, \pygratetwo and
 \pygratethree significantly narrow the gap between Python 2 and Python 3: it
 means that programs can be kept running during most of the migration process,
 though there is still a `gap' between \pygratetwo and \pygratethree. We migrate
-several programs \emph{Twisted}, an event-drives networking engine
+several programs, including \emph{Twisted}, an event-driven networking engine
 implemented in Python, showing that our TMVs do meaningfully help
 migration.
 
-This paper thus serves to both introduce the concept of TMVs and a case study
+This paper thus serves two purposes: it introduce TMVs and provides a case study
 of their use. Although it is important not to over-generalise from a single
 example, we believe that \pygratetwo and \pygratethree show that adapting both
-the old and new versions of a language meaningfully eases migration. This may
+the old and new versions of a language meaningfully smoothes migration. This may
 prove useful for other languages, including languages very different from
 Python, in future migrations. By doing so, this paper makes the following
 main contributions:
@@ -91,6 +89,109 @@ main contributions:
     efforts towards automatic migration of Python 2 
     programs to Python 3.
 \end{itemize}
+
+
+\section{The Migration Challenge}
+
+Most readers will probably have experienced the need to adjust one of their
+programs after a programming language has evolved. For example, to print a
+value to \lstinline{stdout} in Python 2 one could write:
+
+\begin{lstlisting}[language=Python]
+print 2+3
+\end{lstlisting}
+
+\noindent However, this program fails to compile\footnote{Although often
+described as `interpreted' languages, most implementations of languages like
+Python first compile programs to another representation (sometimes called
+`bytecode') which they then use as a basis for execution.} with Python 3,
+reporting a syntax error. Python 2 has a \lstinline{print} statement built-in
+to the language's grammar: Python 3 has no such construct in the grammar.
+Instead a global \lstinline{print} function is provided, which must be called
+using normal function call notation:
+
+\begin{lstlisting}[language=Python]
+print(2+3)
+\end{lstlisting}
+
+Since \lstinline{print} statements in Python 2 are common, fixing all of
+them when migrating to Python 3 may appear tiresome. Fortunately, because
+\lstinline{print} is a grammar-level construct in Python 2, all instances
+that need fixing can be easily identified. Python 3 comes with a tool called
+\lstinline{2to3} which can be statically run over a Python codebase, and not
+only point out each \lstinline{print} statement which needs fixing, but
+(with the `\lstinline{-w}' flag) update the user's source code too.
+
+Unfortunately, not all such changes between Python 2 and Python 3 are
+handled quite so easily. Consider this Python 2 fragment:
+
+\begin{lstlisting}[language=Python]
+x = cmp(2, 3)
+\end{lstlisting}
+
+The global \lstinline{cmp(x, y)} function in Python 2 compares its two arguments
+and returns -1 if $x < y$, 0 if $x = y$, or 1 if $x > y$ --- in this example,
+\lstinline{x} will be assigned the value -1. \lstinline{cmp} is
+often used as the basis for determining the order to sort collections such
+as lists.
+
+Python 3 removes the global \lstinline{cmp} function, causing the fragment
+above to produce a generic \lstinline{name not defined} error. Unfortunately,
+running the \lstinline{2to3} tool over our fragment does not produce a warning,
+let alone attempt to automatically fix it. The probable reason for this is that,
+unlike \lstinline{print}, it is impossible to statically identify calls to
+\lstinline{cmp} with perfect precision. For example, the user can introduce
+their own local function called \lstinline{cmp} which overrides the global
+function or import a \lstinline{cmp} function from another module. Such examples
+seem like they can be statically detected, but it is easy to use Python's
+dynamic features to alter namespaces. A deliberately ludicrous, but fully legal,
+example shows the extent of this issue:
+
+\begin{lstlisting}[language=Python]
+self_mod = __import__(__name__)
+setattr(self_mod.__builtins__, input(), "xyz")
+print(cmp)
+\end{lstlisting}
+
+This example first gets a reference to the current module using a dynamic name
+space lookup (line 1). It then uses \lstinline{input} to read a string from the
+user at run-time, and creates or alters a global variable of that name,
+assigning it the value of \lstinline{xyz} (line 2). Finally, the current value
+of the \lstinline{cmp} global variable is printed out (line 3). For all but one
+user inputs, this will print \lstinline{<built-in function cmp>} --- but if the
+user happens to enter the string \lstinline{cmp} then it will print out
+\lstinline{xyz}.
+
+The point of this example is not, to put it mildly, to showcase good programmer
+practise, but to show that Python's highly dynamic nature defeats most seemingly
+reasonable static analyses. This means that it is impossible in general
+to be sure whether any use of the name \lstinline{cmp} references
+the `global' \lstinline{cmp} function or not.
+
+The difficulty of deriving a program's dynamic behaviour from a static
+examination presents an impossible choice for static migration tools such as
+\lstinline{2to3}. In this case, \lstinline{2to3} can either: assume that all
+uses of the name \lstinline{cmp} point to the global function, risking false
+positives; or assume that it can't tell, all but guaranteeing false negatives.
+Neither outcome is desirable, but arguably false positives are worse in this
+case, since they would cause the user's source code to be incorrectly changed.
+Perhaps for this reason, \lstinline{2to3} (and other similar tools we are
+aware of) nearly always err on the side of caution, heavily favouring
+false negatives over false positives.
+
+The ease of migrating \lstinline{print}, and the challenges of migrating
+\lstinline{cmp}, between Python 2 and Python 3 highlight the fundamental
+challenge of language migration. Language designers can make changes (like
+\lstinline{print}) that can be statically detected and fixed with little fear
+of substantial user complaint. However, changes which can only be detected
+dynamically are far more dangerous. This heavily constrains the possible
+changes that most language designers will consider plausible. In this paper we
+are chiefly concerned with what happens when language designers wish to
+consider, or actually carry out, changes to a language which can only be
+detected dynamically. Must the burden of migrating programs be placed entirely
+on users? Can we help them carry out their migration? If so, what might `help'
+look like and to what degree does it actually help?
+
 
 \section{Program Migration}
 
@@ -118,6 +219,73 @@ port the program to match the new syntax and semantics through \emph{source code
 and in some cases just \emph{backporting} of patches from the newer version of the language to the
 old version that the user program is based on.
 
+
+\section{Temporary Migration Variants}
+
+We want to make it easier to migrate large Python 2 programs to Python3.
+The problem is that it’s difficult to keep a program running during this 
+migration period – and if a program isn’t runnable it’s hard to have 
+confidence that the changes being made to it are correct.
+
+Why is this difficult? It’s because running Python2 code on Python3 rarely works: 
+sometimes the minimal changes that need to be made are significant and during that 
+time the program works neither on Python2 nor Python 3. Put another way, there is a 
+porting chasm between Python2 and Python3: we want to substantially reduce, and 
+perhaps even eliminate, that chasm. We can reduce the chasm in both directions: 
+making Python2 support more Python3 idioms; and making Python3 support more Python2 
+idioms. In both cases the aim is that this extra support is temporary: we don’t want 
+users to get stuck in our mutant Python versions forever, but to use them as a stepping 
+stone towards full, manageable, migration.
+
+\subsection{Migration Principle}
+
+Aim: we would like to give warnings that the user can use to adjust 
+their code easily, rather than syntax errors that require complicated 
+changes.
+
+Assumption: we expect the user to run all their code under pygrate2, 
+and fix all warnings. When they’ve done that, they should run their 
+code under pygrate3 and fix all warnings. At that point we hope that 
+they can run their code unchanged in python3.
+
+The general rationale is to by default issue warnings in pygrate2
+for as many cases as is technically possible. In some exceptions 
+we decide to move the warnings to pygrate3 under the following 
+circumstances:
+
+\begin{itemize}
+\item Precision
+\item Implementation constraints
+\end{itemize}
+
+\paragraph*{Precision}
+
+Depending on what changed in either syntax or semantics between 
+Python 2 and 3, it is possible that warning in pygrate3 will give 
+us an opportunity to warn more accurately, with 
+less false positives. This in turn means  less warnings to deal with 
+for the user. For example, if a method M1 in python2 changes its name 
+to M2 in python3, we get more false positives by adding M2 as an alias 
+in pygrate2 than we do adding M1 as an alias in pygrate3. Note that 
+aliasing is the best case scenario. However, sometimes we also have to 
+monitor the engineering trade offs of supporting the M1 syntax in pygrate3 
+for the warning purposes, it may be just impossible for both M1 And M2 to 
+coexist, case in point strings.
+
+\paragraph*{Implementation constraints}
+
+When Python transitioned to Python 3, not only did the syntax and semantics change, but the
+Core team also took time to re-organize and clean up the implementation. It is not a black 
+and white decision to judge whether all decisions made in pygrate3 are cleaner. In general 
+several parts of the code are cleaner, some equally less modular and in general other parts 
+introduce complexity.
+
+Modular code is generally easier to accommodate when warning compared to slots. When we 
+have to warn for features exposed as slots we have to either look for a version (pygrate2 
+or pygrate3) with better modularity or change the implementation to be modular.
+
+
+\section{Related work}
 
 \subsection{Program Pattern Analysis}
 
@@ -183,70 +351,6 @@ to the old version~\cite{Shariffdeenbackporting}.
 
 Backporting doesnt modfy the user program, instead the language is modified but depending
 on the level of compatibility of the ported patch, the program can be modified.
-
-\section{Temporary Migration Variants}
-
-We want to make it easier to migrate large Python 2 programs to Python3.
-The problem is that it’s difficult to keep a program running during this 
-migration period – and if a program isn’t runnable it’s hard to have 
-confidence that the changes being made to it are correct.
-
-Why is this difficult? It’s because running Python2 code on Python3 rarely works: 
-sometimes the minimal changes that need to be made are significant and during that 
-time the program works neither on Python2 nor Python 3. Put another way, there is a 
-porting chasm between Python2 and Python3: we want to substantially reduce, and 
-perhaps even eliminate, that chasm. We can reduce the chasm in both directions: 
-making Python2 support more Python3 idioms; and making Python3 support more Python2 
-idioms. In both cases the aim is that this extra support is temporary: we don’t want 
-users to get stuck in our mutant Python versions forever, but to use them as a stepping 
-stone towards full, manageable, migration.
-
-\subsection{Migration Principle}
-
-Aim: we would like to give warnings that the user can use to adjust 
-their code easily, rather than syntax errors that require complicated 
-changes.
-
-Assumption: we expect the user to run all their code under pygrate2, 
-and fix all warnings. When they’ve done that, they should run their 
-code under pygrate3 and fix all warnings. At that point we hope that 
-they can run their code unchanged in python3.
-
-The general rationale is to by default issue warnings in pygrate2
-for as many cases as is technically possible. In some exceptions 
-we decide to move the warnings to pygrate3 under the following 
-circumstances:
-
-\begin{itemize}
-\item Precision
-\item Implementation constraints
-\end{itemize}
-
-\paragraph*{Precision}
-
-Depending on what changed in either syntax or semantics between 
-Python 2 and 3, it is possible that warning in pygrate3 will give 
-us an opportunity to warn more accurately, with 
-less false positives. This in turn means  less warnings to deal with 
-for the user. For example, if a method M1 in python2 changes its name 
-to M2 in python3, we get more false positives by adding M2 as an alias 
-in pygrate2 than we do adding M1 as an alias in pygrate3. Note that 
-aliasing is the best case scenario. However, sometimes we also have to 
-monitor the engineering trade offs of supporting the M1 syntax in pygrate3 
-for the warning purposes, it may be just impossible for both M1 And M2 to 
-coexist, case in point strings.
-
-\paragraph*{Implementation constraints}
-
-When Python transitioned to Python 3, not only did the syntax and semantics change, but the
-Core team also took time to re-organize and clean up the implementation. It is not a black 
-and white decision to judge whether all decisions made in pygrate3 are cleaner. In general 
-several parts of the code are cleaner, some equally less modular and in general other parts 
-introduce complexity.
-
-Modular code is generally easier to accommodate when warning compared to slots. When we 
-have to warn for features exposed as slots we have to either look for a version (pygrate2 
-or pygrate3) with better modularity or change the implementation to be modular.
 
 
 \bibliographystyle{plain}
