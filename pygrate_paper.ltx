@@ -7,14 +7,16 @@
 \begin{abstract}
 \noindent
 Many changes one might wish to make to a programming language break existing
-programs, causing disruption and complaint amongst users. Widely used
+programs, causing disruption and complaint amongst users. Widely used languages
 find it increasingly difficult to make such changes, causing them to slowly ossify as
-ever more of the language is considered unchangeable. In this paper, we
+ever more of the language is considered unchangeable.
+
+In this paper, we
 consider a notably disruptive change to a mainstream programming language:
 the transition from Python 2 to Python 3. We introduce
 the idea of \emph{Temporary Migration Variants} (TMV) --- intermediate
-language versions which which allow
-code to be gradually migrated until the TMV
+language versions which allow
+code to be gradually migrated until the TMV is
 no longer needed. We implement TMVs for both CPython 2.x and CPython 3.x which
 allow code to run with forward/backward compatible fixes and
 warnings. Our simple TMVs, though neither complete or perfect, suggest that
