@@ -224,67 +224,65 @@ old version that the user program is based on.
 
 \section{Temporary Migration Variants}
 
-We want to make it easier to migrate large Python 2 programs to Python3.
-The problem is that it’s difficult to keep a program running during this 
-migration period – and if a program isn’t runnable it’s hard to have 
-confidence that the changes being made to it are correct.
+To smoothen migration from older to newer languages, \emph{Temporary Migration Variants} are versions
+of the old and new language, with warnings to signal and alert of any feature incompatibilities. For Python, 
+we modify the Python 2.7 and Python 3.8 versions, with useful warnings, containing both an error message 
+and potential fix for each incompatible syntax encountered for the code base, in two variants,  \pygratetwo 
+and \pygratethree respectively.
 
-Why is this difficult? It’s because running Python2 code on Python3 rarely works: 
-sometimes the minimal changes that need to be made are significant and during that 
-time the program works neither on Python2 nor Python 3. Put another way, there is a 
-porting chasm between Python2 and Python3: we want to substantially reduce, and 
-perhaps even eliminate, that chasm. We can reduce the chasm in both directions: 
-making Python2 support more Python3 idioms; and making Python3 support more Python2 
-idioms. In both cases the aim is that this extra support is temporary: we don’t want 
-users to get stuck in our mutant Python versions forever, but to use them as a stepping 
-stone towards full, manageable, migration.
+Executing warnings can introduce unwanted overhead for default language settings. To remedy  this behavior, 
+we instead introduce optional flags \lstinline{{-2} for the \pygratethree variant and \lstinline{{-3} for 
+the \pygratetwo variant. This way the variants do not have to be completely throw-away.
 
-\subsection{Migration Principle}
+As we describe in the sequel, because of the complexity in incompatibilities between Python 2 and 3, it 
+was not possible to cover most of the cases through static analysis of the code. We instead use more 
+dynamic methodologies to abate teasing apart and identifying the incompatibility, warning precisely 
+with a more specific and relevant fix.
 
-Aim: we would like to give warnings that the user can use to adjust 
-their code easily, rather than syntax errors that require complicated 
-changes.
+Warnings are generated at all stages of the compilation process, by introspecting mostly higher order 
+abstractions, from for example the grammar, the abstract syntax tree, the compiler and the symbol 
+table to correctly identify both syntactic and semantic incompatibilities.
 
-Assumption: we expect the user to run all their code under pygrate2, 
-and fix all warnings. When they’ve done that, they should run their 
-code under pygrate3 and fix all warnings. At that point we hope that 
-they can run their code unchanged in python3.
+\subsection{Design Principle}
 
-The general rationale is to by default issue warnings in pygrate2
-for as many cases as is technically possible. In some exceptions 
-we decide to move the warnings to pygrate3 under the following 
-circumstances:
+The goal of warnings in both  \pygratetwo and \pygratethree  is to give warnings with useful information 
+on a like the warning message, fix and line number that the user can then use to adjust their code in 
+a realistic way, rather than syntax errors that just fail the code without any useful immediate information.
 
-\begin{itemize}
-\item Precision
-\item Implementation constraints
-\end{itemize}
+With these warnings, the assumption is that the user runs all their code under  \pygratetwo, fixing all 
+warnings using the provided hints on potential fixes. After which, they can run their code under \pygratethree, 
+fixing all warnings again. At which point we hope that they can run their code unchanged in python3.
 
-\paragraph*{Precision}
+The general rationale is to by default issue warnings in \pygratetwo for as many cases as is technically 
+possible. In some exceptions we decide to move the warnings to \pygratethree under two circumstances: 
+The general rationale is to by default issue warnings in \pygratetwo for as many cases as is technically 
+possible. In some exceptions we decide to move the warnings to pygrate3 under two circumstances: 1) 
+the need for precision and 2) implementation constraints.
 
-Depending on what changed in either syntax or semantics between 
-Python 2 and 3, it is possible that warning in pygrate3 will give 
-us an opportunity to warn more accurately, with 
-less false positives. This in turn means  less warnings to deal with 
-for the user. For example, if a method M1 in python2 changes its name 
-to M2 in python3, we get more false positives by adding M2 as an alias 
-in pygrate2 than we do adding M1 as an alias in pygrate3. Note that 
-aliasing is the best case scenario. However, sometimes we also have to 
-monitor the engineering trade offs of supporting the M1 syntax in pygrate3 
-for the warning purposes, it may be just impossible for both M1 And M2 to 
-coexist, case in point strings.
-
-\paragraph*{Implementation constraints}
+Depending on what changed in either syntax or semantics between Python 2 and 3, it is possible 
+that warning in \pygratethree will give us an opportunity to warn more accurately, with 
+less false positives. This in turn means  less warnings to deal with for the user. For example, 
+if a method \lstinline{{M1} in python2 changes its name to \lstinline{{M2} in python3, 
+we get more false positives by adding \lstinline{M2} as an alias in \pygratetwo than we do 
+adding \lstinline{M1} as an alias in pygrate3. Note that aliasing is the best case scenario. 
+However, sometimes we also have to monitor the engineering trade offs of supporting the \lstinline{{M1} 
+syntax in pygrate3 for the warning purposes, it may be just impossible for both \lstinline{{M1} and 
+\lstinline{{M2} to coexist, case in point strings.
 
 When Python transitioned to Python 3, not only did the syntax and semantics change, but the
 Core team also took time to re-organize and clean up the implementation. It is not a black 
-and white decision to judge whether all decisions made in pygrate3 are cleaner. In general 
-several parts of the code are cleaner, some equally less modular and in general other parts 
-introduce complexity.
+and white decision to judge whether all decisions made in \pygratethree are cleaner. 
+In general several parts of the code are cleaner, some equally less modular and in general 
+other parts introduce complexity.
 
-Modular code is generally easier to accommodate when warning compared to slots. When we 
-have to warn for features exposed as slots we have to either look for a version (pygrate2 
-or pygrate3) with better modularity or change the implementation to be modular.
+Modular code is generally easier to accommodate when warning compared to slots. When we have 
+to warn for features exposed as slots we have to either look for a version (\pygratetwo or \pygratethree) 
+with better modularity or change the implementation to be modular.
+
+\subsection{Warning Anatomy}
+
+
+
 
 
 \section{Related work}
