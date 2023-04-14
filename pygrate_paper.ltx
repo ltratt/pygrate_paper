@@ -281,6 +281,10 @@ with better modularity or change the implementation to be modular.
 
 \subsection{Warning Anatomy}
 
+Warnings are implemented as custom exceptions in both Python 2 and 3, thereby introducing new exception classes
+\lstinline{Py2XWarning} and \lstinline{Py3xWarning} respectively tied to their corresponding flags, instead of 
+using a generic \lstinline{Deprecation} type.
+
 
 
 
