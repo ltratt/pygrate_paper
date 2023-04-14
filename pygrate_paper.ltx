@@ -8,19 +8,18 @@
 \noindent
 Many changes one might wish to make to a programming language break existing
 programs, causing disruption and complaint amongst users. Widely used languages
-find it increasingly difficult to make such changes, causing them to slowly ossify as
-ever more of the language is considered unchangeable.
+tend to slowly ossify as ever more of the language is considered unchangeable.
 
 In this paper, we
 consider a notably disruptive change to a mainstream programming language:
 the transition from Python 2 to Python 3. We introduce
-the idea of \emph{Temporary Migration Variants} (TMV) --- intermediate
+the concept of \emph{Temporary Migration Variants} (TMV) --- intermediate
 language versions which allow
 code to be gradually migrated until the TMV is
 no longer needed. We implement TMVs for both CPython 2.x and CPython 3.x which
 allow code to run with forward/backward compatible fixes and
 warnings. Our simple TMVs, though neither complete or perfect, suggest that
-it may be possible to keep evolving languages if we provide the ability
+it may be possible to keep languages evolving by providing the ability
 for users to gradually migrate their code from one version to another.
 \end{abstract}
 
@@ -74,23 +73,12 @@ several programs, including \emph{Twisted}, an event-driven networking engine
 implemented in Python, showing that our TMVs do meaningfully help
 migration.
 
-This paper thus serves two purposes: it introduce TMVs and provides a case study
-of their use. Although it is important not to over-generalise from a single
-example, we believe that \pygratetwo and \pygratethree show that adapting both
-the old and new versions of a language meaningfully smoothes migration. This may
-prove useful for other languages, including languages very different from
-Python, in future migrations. By doing so, this paper makes the following
-main contributions:
-
-\begin{itemize}
-    \item A technique to allow programs to gradually migrate to a new 
-    version of a programming language.
-    \item A case study of using this technique to port 
-    two real-world Python program namely, Twisted , a popular library based on PyPI downloads.
-    \item A discussion of possible outcomes of similar 
-    efforts towards automatic migration of Python 2 
-    programs to Python 3.
-\end{itemize}
+This paper thus serves two purposes: it introduces TMVs and provides a case study
+of their use. Although we do not want to over-generalise from a single
+example, \pygratetwo and \pygratethree suggest that TMVs meaningfully
+smooth migration. This concept may prove useful for other languages, including
+for languages which are very different from
+Python, in future migrations.
 
 
 \section{The Migration Challenge}
@@ -103,7 +91,7 @@ value to \lstinline{stdout} in Python 2 one could write:
 print 2+3
 \end{lstlisting}
 
-\noindent However, this program fails to compile\footnote{Although often
+However, this program fails to compile\footnote{Although often
 described as `interpreted' languages, most implementations of languages like
 Python first compile programs to another representation (sometimes called
 `bytecode') which they then use as a basis for execution.} with Python 3,
@@ -118,11 +106,11 @@ print(2+3)
 
 Since \lstinline{print} statements in Python 2 are common, fixing all of
 them when migrating to Python 3 may appear tiresome. Fortunately, because
-\lstinline{print} is a grammar-level construct in Python 2, all instances
-that need fixing can be easily identified. Python 3 comes with a tool called
-\lstinline{2to3} which can be statically run over a Python codebase, and not
-only point out each \lstinline{print} statement which needs fixing, but
-(with the `\lstinline{-w}' flag) update the user's source code too.
+\lstinline{print} is a grammar-level construct in Python 2, it is possible
+to pinpoint each place that needs fixing with 100\% accuracy. Python 3 comes with a tool called
+\lstinline{2to3} which can be statically run over a Python codebase. Not
+only does it point out each \lstinline{print} statement which needs fixing, but
+(with the `\lstinline{-w}' flag) it can update the user's source code too.
 
 Unfortunately, not all such changes between Python 2 and Python 3 are
 handled quite so easily. Consider this Python 2 fragment:
@@ -138,28 +126,30 @@ often used as the basis for determining the order to sort collections such
 as lists.
 
 Python 3 removes the global \lstinline{cmp} function, causing the fragment
-above to produce a generic \lstinline{name not defined} error. Unfortunately,
-running the \lstinline{2to3} tool over our fragment does not produce a warning,
-let alone attempt to automatically fix it. The probable reason for this is that,
+above to produce a generic `\lstinline{name not defined}' error. Unfortunately,
+the \lstinline{2to3} does not produce a warning when it sees uses of \lstinline{cmp},
+let alone attempt to automatically fix them. The probable reason for this is that,
 unlike \lstinline{print}, it is impossible to statically identify calls to
-\lstinline{cmp} with perfect precision. For example, the user can introduce
+\lstinline{cmp} with 100\% accuracy. For example, the user can introduce
 their own local function called \lstinline{cmp} which overrides the global
 function or import a \lstinline{cmp} function from another module. Such examples
-seem like they can be statically detected, but it is easy to use Python's
+may seem like they can be statically detected, but it is easy to use Python's
 dynamic features to alter namespaces. A deliberately ludicrous, but fully legal,
 example shows the extent of this issue:
 
 \begin{lstlisting}[language=Python]
 self_mod = __import__(__name__)
+n = input()
 setattr(self_mod.__builtins__, input(), "xyz")
 print(cmp)
 \end{lstlisting}
 
 This example first gets a reference to the current module using a dynamic name
-space lookup (line 1). It then uses \lstinline{input} to read a string from the
-user at run-time, and creates or alters a global variable of that name,
-assigning it the value of \lstinline{xyz} (line 2). Finally, the current value
-of the \lstinline{cmp} global variable is printed out (line 3). For all but one
+space lookup (line 1). It then uses \lstinline{input} to read a string from
+the user at run-time (line 2). The value of that string is then used to
+create, or if it already exists alters, a global variable,
+assigning to it the value of \lstinline{xyz} (line 3). Finally, the current value
+of the \lstinline{cmp} global variable is printed out (line 4). For all but one
 user inputs, this will print \lstinline{<built-in function cmp>} --- but if the
 user happens to enter the string \lstinline{cmp} then it will print out
 \lstinline{xyz}.
@@ -171,12 +161,12 @@ to be sure whether any use of the name \lstinline{cmp} references
 the `global' \lstinline{cmp} function or not.
 
 The difficulty of deriving a program's dynamic behaviour from a static
-examination presents an impossible choice for static migration tools such as
+examination presents a difficult choice for static migration tools such as
 \lstinline{2to3}. In this case, \lstinline{2to3} can either: assume that all
 uses of the name \lstinline{cmp} point to the global function, risking false
 positives; or assume that it can't tell, all but guaranteeing false negatives.
-Neither outcome is desirable, but arguably false positives are worse in this
-case, since they would cause the user's source code to be incorrectly changed.
+Neither outcome is desirable, but arguably false positives are worse,
+since they would cause the user's source code to be incorrectly changed.
 Perhaps for this reason, \lstinline{2to3} (and other similar tools we are
 aware of) nearly always err on the side of caution, heavily favouring
 false negatives over false positives.
@@ -191,7 +181,7 @@ changes that most language designers will consider plausible. In this paper we
 are chiefly concerned with what happens when language designers wish to
 consider, or actually carry out, changes to a language which can only be
 detected dynamically. Must the burden of migrating programs be placed entirely
-on users? Can we help them carry out their migration? If so, what might `help'
+on users or can we help them carry out their migration? If so, what might `help'
 look like and to what degree does it actually help?
 
 
