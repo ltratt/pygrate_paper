@@ -3,7 +3,7 @@
 .svg.pdf:
 	inkscape --export-filename=$@ $<
 
-DIAGRAMS =
+DIAGRAMS = semantic_gap.pdf
 
 all: pygrate_paper.pdf
 

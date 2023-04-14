@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="169.03059mm"
+   height="57.321136mm"
+   viewBox="0 0 169.0306 57.321137"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="semantic_gap.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="1.1893044"
+     inkscape:cx="409.90347"
+     inkscape:cy="248.46456"
+     inkscape:window-width="1842"
+     inkscape:window-height="1231"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid132"
+       originx="4.5139386"
+       originy="-150.3375" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <marker
+       style="overflow:visible"
+       id="marker1674"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Arrow1"
+       markerWidth="4.0606604"
+       markerHeight="6.7071066"
+       viewBox="0 0 4.0606602 6.7071068"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:butt"
+         d="M 3,-3 0,0 3,3"
+         id="path1672"
+         transform="rotate(180,0.125,0)"
+         sodipodi:nodetypes="ccc" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Arrow1"
+       markerWidth="4.0606604"
+       markerHeight="6.7071066"
+       viewBox="0 0 4.0606602 6.7071068"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:none;stroke:context-stroke;stroke-width:1;stroke-linecap:butt"
+         d="M 3,-3 0,0 3,3"
+         id="path5057"
+         transform="rotate(180,0.125,0)"
+         sodipodi:nodetypes="ccc" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(4.5139421,-150.3375)">
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.95;stroke-dasharray:none"
+       id="rect283"
+       width="39.6875"
+       height="10.583333"
+       x="43.65625"
+       y="150.8125" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="63.399231"
+       y="157.95624"
+       id="text339"><tspan
+         sodipodi:role="line"
+         id="tspan337"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="63.399231"
+         y="157.95624">Python 2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="19.579159"
+       y="157.95624"
+       id="text339-9"><tspan
+         sodipodi:role="line"
+         id="tspan337-9"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="19.579159"
+         y="157.95624">Status quo</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:0.95;font-family:sans-serif;text-align:end;text-anchor:end;stroke-width:0.264583"
+       x="35.995213"
+       y="178.59892"
+       id="text339-9-1"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:end;text-anchor:end;stroke-width:0.264583"
+         x="35.995213"
+         y="178.59892"
+         id="tspan3007">TMVs</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:end;text-anchor:end;stroke-width:0.264583"
+         x="35.995213"
+         y="184.73296"
+         id="tspan3021">Platonic Ideal</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:0.95;font-family:sans-serif;text-align:end;text-anchor:end;stroke-width:0.264583"
+       x="35.951805"
+       y="200.17896"
+       id="text339-9-1-8"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:end;text-anchor:end;stroke-width:0.264583"
+         x="35.951805"
+         y="200.17896"
+         id="tspan3007-7">TMVs</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:end;text-anchor:end;stroke-width:0.264583"
+         x="35.951805"
+         y="206.31299"
+         id="tspan3021-5">pygrate</tspan></text>
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.95;stroke-dasharray:none"
+       id="rect283-3"
+       width="39.6875"
+       height="10.583333"
+       x="124.35416"
+       y="150.8125" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="144.09715"
+       y="157.95624"
+       id="text339-0"><tspan
+         sodipodi:role="line"
+         id="tspan337-8"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="144.09715"
+         y="157.95624">Python 3</tspan></text>
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.95;stroke-dasharray:none"
+       id="rect283-7"
+       width="39.6875"
+       height="10.583333"
+       x="63.603104"
+       y="175.15936" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="83.346069"
+       y="182.3031"
+       id="text339-6"><tspan
+         sodipodi:role="line"
+         id="tspan337-7"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="83.346069"
+         y="182.3031">Python 2'</tspan></text>
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.95;stroke-dasharray:none"
+       id="rect283-3-2"
+       width="39.6875"
+       height="10.583333"
+       x="104.40732"
+       y="175.15416" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="124.15031"
+       y="182.2979"
+       id="text339-0-2"><tspan
+         sodipodi:role="line"
+         id="tspan337-8-6"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="124.15031"
+         y="182.2979">Python 3'</tspan></text>
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.95;stroke-dasharray:none"
+       id="rect283-7-6"
+       width="39.6875"
+       height="10.583333"
+       x="59.266663"
+       y="196.32086" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="79.009636"
+       y="203.4646"
+       id="text339-6-1"><tspan
+         sodipodi:role="line"
+         id="tspan337-7-8"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="79.009636"
+         y="203.4646">pygrate2</tspan></text>
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.95;stroke-dasharray:none"
+       id="rect283-3-2-2"
+       width="39.6875"
+       height="10.583333"
+       x="107.47922"
+       y="196.31567" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+       x="127.22221"
+       y="203.45941"
+       id="text339-0-2-9"><tspan
+         sodipodi:role="line"
+         id="tspan337-8-6-6"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="127.22221"
+         y="203.45941">pygrate3</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.465;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow1);marker-end:url(#marker1674)"
+       d="m 83.343749,164.04166 c 25.135421,1e-5 29.104171,1e-5 41.010421,0"
+       id="path585"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;stroke-width:0.264583"
+       x="90.445137"
+       y="163.02473"
+       id="text1750"><tspan
+         sodipodi:role="line"
+         id="tspan1748"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Italic';stroke-width:0.264583"
+         x="90.445137"
+         y="163.02473">Semantic Gap</tspan></text>
+  </g>
+</svg>

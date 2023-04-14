@@ -59,6 +59,24 @@ Features can be backwards or forward ported between both versions, warning users
 unsupported, or changed, features while still allowing programs to run. Once
 all warnings are fixed, the TMVs have done their job, and can be discarded.
 
+\begin{figure}[t]
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{semantic_gap.pdf}
+\end{center}
+\caption{This paper's concepts in the context of Python 2 and Python 3. On
+the top row we see the status quo: Python 2 and Python 3 have a substantial semantic gap
+which users must manually bridge. In other words, they must take a Python 2
+program and repeatedly alter it until it eventually runs correctly under Python 3.
+On the middle row we have the Platonic ideal of TMVs: variants of Python 2 and
+Python 3 that have no semantic gap, and thus allow the smoothest possible migration
+between the two. On the bottom row we have the reality of the \pygratetwo and
+\pygratethree TMVs: a much smaller, but not quite non-existent, semantic gap
+compared to Python 2 and Python 3. \pygratetwo and \pygratethree make
+migrating programs from Python 2 to Python 3 easier, though they cannot remove
+remove all sources of migration friction.}
+\label{fig:semantic_gap}
+\end{figure}
+
 In this paper we show how TMVs can smooth migration in the face of the most
 disruptive change to a mainstream language in living memory: the transition
 from Python 2 to Python 3. We create two TMVs: \pygratetwo, a variant of
@@ -66,9 +84,10 @@ CPython 2.7 which warns when users use features that are missing or
 incompatible in Python 3.x, and which backports some features from Python 3.x;
 and \pygratethree, a variant of CPython 3.12 which forwards ports some features
 from Python 2.x, warning when they are used. In essence, \pygratetwo and
-\pygratethree significantly narrow the gap between Python 2 and Python 3: it
+\pygratethree significantly narrow the semantic gap between Python 2 and Python 3: it
 means that programs can be kept running during most of the migration process,
-though there is still a `gap' between \pygratetwo and \pygratethree. We migrate
+though there is still a `gap' between \pygratetwo and \pygratethree (see
+\cref{fig:semantic_gap} for a visualisation of this idea). We migrate
 several programs, including \emph{Twisted}, an event-driven networking engine
 implemented in Python, showing that our TMVs do meaningfully help
 migration.
@@ -183,33 +202,6 @@ consider, or actually carry out, changes to a language which can only be
 detected dynamically. Must the burden of migrating programs be placed entirely
 on users or can we help them carry out their migration? If so, what might `help'
 look like and to what degree does it actually help?
-
-
-\section{Program Migration}
-
-User applications and programs can be modified in response to backward incompatible
-changes in the language they are implemented in or even the need to migrate the 
-implementation to a completely new programming language. In both cases, the common
-objectives are teo fold, first to support any new syntax and secondly, to synchronise
-semantics.
-
-Migration of programs from one programming language to another is much more invasive,
-requiring the extensive use of higher order abstractions like abstract syntax tress (AST)
-or parse trees, and non-trivial code transformations. Most of the challenges stem from 
-reconciling semantics like static Vs dynamic typing, functional vs non functional etc.,
-between the source and target language.
-
-In contrast, when a new version of a programming language introduces backward incompatible
-changes, while it is not perfect to conclude in all cases, migration is not as invasive in 
-most cases. However, as the Python ecosystem witnessed in the Python 2 to Python 3 case, 
-languages can evolve radically in both syntax and semantics leading to technical challenges
-relatively equivalent to a new language all together.
-
-In both these cases, migration of affected user appliations requires that either automated
-tools or manual interventions identify the new patterns through \emph{pattern analysis}, 
-port the program to match the new syntax and semantics through \emph{source code transformations}
-and in some cases just \emph{backporting} of patches from the newer version of the language to the
-old version that the user program is based on.
 
 
 \section{Temporary Migration Variants}
