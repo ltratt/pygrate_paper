@@ -50,7 +50,7 @@ Our inability to evolve programs as languages change imposes costs on languages:
 some kinds of evolution, though highly desirable, are perceived as too disruptive
 for users to be tolerated. Many aspects of languages tend to ossify as a result.
 
-In this paper we introduce the idea of
+In this paper we introduce the concept of
 \emph{Temporary Migration Variants}: throw-away variants of the `old' and `new'
 versions of a language which enable smoother migration between the two. As well
 as traditional, simple, static warnings of incompatibilities, TMVs aim to
@@ -205,6 +205,62 @@ look like and to what degree does it actually help?
 
 
 \section{Temporary Migration Variants}
+
+The underlying problem that motivates our work is that many desirable changes
+to a programming language break user programs in ways that can only
+reasonably be detected dynamically. Our solution to this problem is the concept
+of \emph{Temporary Migration Variants}: throw-away implementations of the `old' and `new'
+versions of a language which narrow the semantic gap, helping smooth the
+migration path. As we shall see, this basic concept can come in several flavours,
+though we explore only one in depth in this paper.
+
+
+\subsection{A Semi-Formal Definition of TMVs}
+
+\newcommand{\tmvlone}{$I'\!_1$\xspace}
+\newcommand{\tmvltwo}{$I'\!_2$\xspace}
+
+We define a \emph{programming language} (henceforth just `language') $L$ to
+have \emph{semantics} that are a combination of the definition of the `core'
+language (e.g.~syntax and dynamic execution rules) and any standard libraries.
+For a given language $L$ we have an `old' version of the language with
+semantics $L_1$ and a `new' version with semantics $L_2$. We have corresponding
+\emph{implementations} of each language $I_1$ and $I_2$. We assume that
+implementations faithfully implement a language's semantics.
+
+The challenge we address is that an arbitrary program $P$ written for $L_1$ and
+which executes correctly on $I_1$ may not be correct for $L_2$ and thus break
+when executed on $I_2$. Programs may \emph{break} in three ways: they may fail
+compile-time checks (and thus not compile); they may run and \emph{abort}
+execution when they try to use a feature that has changed or been removed; or
+they may run and \emph{diverge} from the expected execution paths.
+
+TMVs define both variants of a language's semantics and a corresponding
+implementation. For example, for $L_1$ a TMV defines new semantics
+$L'\!_1$ and a new implementation $I'\!_1$. For simplicity's
+sake, we consider both the semantics and implementation to define the TMV
+$T_1$.
+
+For $T_1$ to be useful, we expect: at least $I'\!_1$ to extend to $I_1$; and
+possibly $L'\!_1$ to extend from $L_1$. Thus if $P$ is correct for $L_1$ and
+executes correctly on $I_1$ we expect it to be correct for $L'\!_1$ and execute
+correctly on $I'\!_1$. At a minimum we then expect $I'\!_1$ to produce warnings
+when features supported in $L_1$ / $L'\!_1$ but not $L_2$ are used. Often more
+usefully, $L'\!_1$ may backport language semantics from $L_2$, allowing $P$ to
+be altered to access features not available in $L_1$ (note that changing
+$L'\!_1$ implicitly requires changing $I'\!_1$). In the latter case, the TMV
+implicitly defines an `intermediate' language whose semantics can be informally
+thought of as `between' those of $L_1$ and $L_2$. A program $P$ that has been
+modified to $P'$ for $L'\!_1$ may no longer be correct for either $L_1$ or
+$L_2$, though it should break in fewer ways under $L'\!_1$ and $I'\!_2$ than
+under $L_2$ and $I_2$.
+
+Defining a TMV $T_2$ or $L_2$ is similar, though for the TMV to be useful,
+$L'\!_2$ must forward port language semantics from $L_1$. Doing so allows
+$I'\!_2$ to warn when such features are used.
+
+
+\section{XYZ}
 
 To smoothen migration from older to newer languages, \emph{Temporary Migration Variants} are versions
 of the old and new language, with warnings to signal and alert of any feature incompatibilities. For Python, 
