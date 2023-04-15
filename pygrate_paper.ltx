@@ -332,42 +332,42 @@ and dont feel like commmiting what I have, its likely to change}
 
 \subsection{Program Pattern Analysis}
 
-Existing work has pattern languages like TXl~\cite{cordy06txl} and frameworks SCRUPLE~\cite{paul1994framework} which
+Existing work has pattern languages like TXl~\cite{cordy06txl} and frameworks SCRUPLE~\cite{paul94framework} which
 identify certain patterns in the program to be ported, transforming the programs according
 to specified transformation rules.
 
 Pattern analysis involves viewing or converting the source code in an intermediate form that
 abates pattern identification. the two common cases involve, either converting the program into
 a parse tree and feeding the modified parse tree to a compiler of the target language/version
-or viewing the source code as a stream of strings~\cite{kontogiannis2010code}.
+or viewing the source code as a stream of strings~\cite{kontogiannis10code}.
 
 Pattern idenfication for program migration is mostly achieved through pattern matching of the
-original source code by matching strings and regular expressions~\cite{kontogiannis2010code} 
+original source code by matching strings and regular expressions~\cite{kontogiannis10code} 
 to identify statements that require modification to the target syntax. Tradititional pattern 
 maching can be extended genenerating parametized suffix tree introducing parametized strings 
-and pattern matching~\cite{baker1993theory, baker1995parameterized} to for 
+and pattern matching~\cite{baker93theory, baker95parameterized} to for 
 example identify duplicates in the code.
 
-The Boyer-Moore-Type algorithm~\cite{watson2003boyer} have been used to 
+The Boyer-Moore-Type algorithm~\cite{watson03boyer} have been used to 
 perform efficient strings matching by comparing patterns with text identifying patterns 
 that can cause a shift rule to be invoked on the text from left to right or vice versa 
-before or after comparison to the pattern~\cite{baker1995parameterized}. The original 
+before or after comparison to the pattern~\cite{baker95parameterized}. The original 
 Boyer-Moore-Type algorithm has gone through modifcations producing variations that make it run 
-faster~\cite{baker1995parameterized, watson2003boyer, waga2016boyer}.
+faster~\cite{baker95parameterized, watson03boyer, waga16boyer}.
 
 Patterns can also be identified through hashing algorithms that use finger print computations
 to search for any source code changes or similarities between the source and target 
-user programs~\cite{watson2003boyer}.
+user programs~\cite{watson03boyer}.
 
 Patterns can equally be identified by maintaining and browsing a program database of the user 
 application, making queries on the code through the database on the files, functions and 
-variables~\cite{paul1994framework}.
+variables~\cite{paul94framework}.
 
 
 \subsection{Source Code Transformation}
 
 For large code bases, the main aim of code transformation 
-tooling~\cite{guo2003unique, kontogiannis2010code} 
+tooling~\cite{guo03unique, kontogiannis10code} 
 is to make migration of extension modules to a new API a feasible 
 alternative, with strong syntactical guarantees. Semantic guarantees
 are harder and thorough testing is required to verify the correctness
@@ -390,7 +390,7 @@ function is invoked.
 When languages release new versions, it is common to maintain older versions in a branch
 for use by programs that can not adopt early to new versions. Interventions either automated
 or manual are used to port some critical features like security patches from the new version 
-to the old version~\cite{shariffdeen2021automated}.
+to the old version~\cite{shariffdeen21automated}.
 
 Backporting doesnt modfy the user program, instead the language is modified but depending
 on the level of compatibility of the ported patch, the program can be modified.
