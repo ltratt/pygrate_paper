@@ -7,8 +7,9 @@
 \begin{abstract}
 \noindent
 Many changes one might wish to make to a programming language break existing
-programs, causing disruption and complaint amongst users. Widely used languages
-tend to slowly ossify as ever more of the language is considered unchangeable.
+programs, causing disruption and complaint amongst users. Over time, there
+is a tendency for ever more of a language to be considered unchangeable,
+causing the language to slowly ossify.
 
 In this paper, we
 consider a notably disruptive change to a mainstream programming language:
@@ -35,15 +36,15 @@ we are motivated by the latter challenge: users often have large, long-lived
 codebases that are critical to their purposes and which they must keep running.
 
 Though rarely discussed in the literature, there are many instances in
-programming language history of users forcing a language's designers to drop
-proposed breaking changes. There are also instances, though harder to quantify,
+programming language history of users forcing a language's designers to
+reconsider breaking changes. There are also instances, though harder to quantify,
 of languages scaring away potential users after developing a reputation for
 frequent breaking changes.
 
 Perhaps surprisingly, there are few automated tools available to assist in
-migrating programs between language versions. Some languages ship with tools that can fix some
-now-changed idioms (e.g.~Python's \texttt{2to3} tool or Rust's \texttt{cargo
-fix}), though these tend only to fix relatively simple syntactic
+migrating programs between language versions. Some languages ship with tools
+(e.g.~Python's \texttt{2to3} tool or Rust's \texttt{cargo
+fix}) that can fix some changes, though typically only simple syntactic
 changes.
 
 Our inability to evolve programs as languages change imposes costs on languages:
@@ -51,13 +52,14 @@ some kinds of evolution, though highly desirable, are perceived as too disruptiv
 for users to be tolerated. Many aspects of languages tend to ossify as a result.
 
 In this paper we introduce the concept of
-\emph{Temporary Migration Variants}: throw-away variants of the `old' and `new'
-versions of a language which enable smoother migration between the two. As well
-as traditional, simple, static warnings of incompatibilities, TMVs aim to
-smooth the migration of changes which can only be detected dynamically.
+\emph{Temporary Migration Variants}: variants of the `old' and `new'
+versions of a language which enable smoother migration of programs between the two. As well
+as traditional compile-time warnings of incompatibilities, TMVs aim to
+deal with changes which only affect run-time.
 Features can be backwards or forward ported between both versions, warning users of
 unsupported, or changed, features while still allowing programs to run. Once
-all warnings are fixed, the TMVs have done their job, and can be discarded.
+all warnings for a given program are fixed, the TMVs have done their job, and
+the user can move wholesale to the `new' version of the language.
 
 \begin{figure}[t]
 \begin{center}
@@ -66,18 +68,20 @@ all warnings are fixed, the TMVs have done their job, and can be discarded.
 \caption{This paper's concepts in the context of Python 2 and Python 3. On
 the top row we see the status quo: Python 2 and Python 3 have a substantial semantic gap
 which users must manually bridge. In other words, they must take a Python 2
-program and repeatedly alter it until it eventually runs correctly under Python 3.
+program, and repeatedly alter it until it eventually runs correctly under Python 3:
+for much of this process the program either cannot run at all, or only runs
+briefly before crashing.
 On the middle row we have the Platonic ideal of TMVs: variants of Python 2 and
 Python 3 that have no semantic gap, and thus allow the smoothest possible migration
 between the two. On the bottom row we have the reality of the \pygratetwo and
-\pygratethree TMVs: a much smaller, but not quite non-existent, semantic gap
+\pygratethree TMVs: a much smaller, though still perceptible, semantic gap
 compared to Python 2 and Python 3. \pygratetwo and \pygratethree make
 migrating programs from Python 2 to Python 3 easier, though they cannot remove
 remove all sources of migration friction.}
 \label{fig:semantic_gap}
 \end{figure}
 
-In this paper we show how TMVs can smooth migration in the face of the most
+In this paper we show how TMVs can ease \emph{migration friction} in the face of the most
 disruptive change to a mainstream language in living memory: the transition
 from Python 2 to Python 3. We create two TMVs: \pygratetwo, a variant of
 CPython 2.7 which warns when users use features that are missing or
@@ -86,10 +90,10 @@ and \pygratethree, a variant of CPython 3.12 which forwards ports some features
 from Python 2.x, warning when they are used. In essence, \pygratetwo and
 \pygratethree significantly narrow the semantic gap between Python 2 and Python 3: it
 means that programs can be kept running during most of the migration process,
-though there is still a `gap' between \pygratetwo and \pygratethree (see
+though there is still a semantic gap between \pygratetwo and \pygratethree (see
 \cref{fig:semantic_gap} for a visualisation of this idea). We migrate
 several programs, including \emph{Twisted}, an event-driven networking engine
-implemented in Python, showing that our TMVs do meaningfully help
+implemented in Python, showing that our TMVs do meaningfully ease
 migration.
 
 This paper thus serves two purposes: it introduces TMVs and provides a case study
@@ -126,10 +130,10 @@ print(2+3)
 Since \lstinline{print} statements in Python 2 are common, fixing all of
 them when migrating to Python 3 may appear tiresome. Fortunately, because
 \lstinline{print} is a grammar-level construct in Python 2, it is possible
-to pinpoint each place that needs fixing with 100\% accuracy. Python 3 comes with a tool called
-\lstinline{2to3} which can be statically run over a Python codebase. Not
-only does it point out each \lstinline{print} statement which needs fixing, but
-(with the `\lstinline{-w}' flag) it can update the user's source code too.
+to statically pinpoint each place that needs fixing with 100\% accuracy. Python 3 comes with a tool called
+\lstinline{2to3} which takes as input Python source code and reports, or (with
+the `\lstinline{-w}' flag) modifies each \lstinline{print} statement which
+needs fixing.
 
 Unfortunately, not all such changes between Python 2 and Python 3 are
 handled quite so easily. Consider this Python 2 fragment:
@@ -146,7 +150,7 @@ as lists.
 
 Python 3 removes the global \lstinline{cmp} function, causing the fragment
 above to produce a generic `\lstinline{name not defined}' error. Unfortunately,
-the \lstinline{2to3} does not produce a warning when it sees uses of \lstinline{cmp},
+the \lstinline{2to3} tool does not produce a warning when it sees uses of \lstinline{cmp},
 let alone attempt to automatically fix them. The probable reason for this is that,
 unlike \lstinline{print}, it is impossible to statically identify calls to
 \lstinline{cmp} with 100\% accuracy. For example, the user can introduce
@@ -171,13 +175,9 @@ assigning to it the value of \lstinline{xyz} (line 3). Finally, the current valu
 of the \lstinline{cmp} global variable is printed out (line 4). For all but one
 user inputs, this will print \lstinline{<built-in function cmp>} --- but if the
 user happens to enter the string \lstinline{cmp} then it will print out
-\lstinline{xyz}.
-
-The point of this example is not, to put it mildly, to showcase good programmer
+\lstinline{xyz}. The point of this example is not, to put it mildly, to showcase good programmer
 practise, but to show that Python's highly dynamic nature defeats most seemingly
-reasonable static analyses. This means that it is impossible in general
-to be sure whether any use of the name \lstinline{cmp} references
-the `global' \lstinline{cmp} function or not.
+reasonable static analyses.
 
 The difficulty of deriving a program's dynamic behaviour from a static
 examination presents a difficult choice for static migration tools such as
@@ -185,7 +185,7 @@ examination presents a difficult choice for static migration tools such as
 uses of the name \lstinline{cmp} point to the global function, risking false
 positives; or assume that it can't tell, all but guaranteeing false negatives.
 Neither outcome is desirable, but arguably false positives are worse,
-since they would cause the user's source code to be incorrectly changed.
+since they cause the user's source code to be incorrectly changed.
 Perhaps for this reason, \lstinline{2to3} (and other similar tools we are
 aware of) nearly always err on the side of caution, heavily favouring
 false negatives over false positives.
@@ -196,8 +196,10 @@ challenge of language migration. Language designers can make changes (like
 \lstinline{print}) that can be statically detected and fixed with little fear
 of substantial user complaint. However, changes which can only be detected
 dynamically are far more dangerous. This heavily constrains the possible
-changes that most language designers will consider plausible. In this paper we
-are chiefly concerned with what happens when language designers wish to
+changes that most language designers will consider plausible.
+
+In this paper we are therefore
+chiefly concerned with what happens when language designers wish to
 consider, or actually carry out, changes to a language which can only be
 detected dynamically. Must the burden of migrating programs be placed entirely
 on users or can we help them carry out their migration? If so, what might `help'
@@ -209,8 +211,8 @@ look like and to what degree does it actually help?
 The underlying problem that motivates our work is that many desirable changes
 to a programming language break user programs in ways that can only
 reasonably be detected dynamically. Our solution to this problem is the concept
-of \emph{Temporary Migration Variants}: throw-away implementations of the `old' and `new'
-versions of a language which narrow the semantic gap, helping smooth the
+of \emph{Temporary Migration Variants}: implementations of the `old' and `new'
+versions of a language which narrow the semantic gap, helping ease the
 migration path. As we shall see, this basic concept can come in several flavours,
 though we explore only one in depth in this paper.
 
@@ -222,42 +224,41 @@ though we explore only one in depth in this paper.
 
 We define a \emph{programming language} (henceforth just `language') $L$ to
 have \emph{semantics} that are a combination of the definition of the `core'
-language (e.g.~syntax and dynamic execution rules) and any standard libraries.
+language (e.g.~syntax and dynamic execution rules) and its standard libraries.
 For a given language $L$ we have an `old' version of the language with
-semantics $L_1$ and a `new' version with semantics $L_2$. We have corresponding
-\emph{implementations} of each language $I_1$ and $I_2$. We assume that
+semantics $L_O$ and a `new' version with semantics $L_N$. We have corresponding
+\emph{implementations} of each language $I_O$ and $I_N$. We assume that
 implementations faithfully implement a language's semantics.
 
-The challenge we address is that an arbitrary program $P$ written for $L_1$ and
-which executes correctly on $I_1$ may not be correct for $L_2$ and thus break
-when executed on $I_2$. Programs may \emph{break} in three ways: they may fail
+The challenge we address is that an arbitrary program $P$ written for $L_O$ and
+which executes correctly on $I_O$ may not be correct for $L_N$ and thus break
+when executed on $I_N$. Programs may \emph{break} in three ways: they may fail
 compile-time checks (and thus not compile); they may run and \emph{abort}
 execution when they try to use a feature that has changed or been removed; or
 they may run and \emph{diverge} from the expected execution paths.
 
-TMVs define both variants of a language's semantics and a corresponding
-implementation. For example, for $L_1$ a TMV defines new semantics
-$L'\!_1$ and a new implementation $I'\!_1$. For simplicity's
-sake, we consider both the semantics and implementation to define the TMV
-$T_1$.
+TMVs are variants of both a language's semantics and its corresponding
+implementation. For example, if our starting point is $L_O$ and $I_O$, then
+defining a TMV requires defining new semantics
+$L'\!_O$ and a new implementation $I'\!_O$.
 
-For $T_1$ to be useful, we expect: at least $I'\!_1$ to extend to $I_1$; and
-possibly $L'\!_1$ to extend from $L_1$. Thus if $P$ is correct for $L_1$ and
-executes correctly on $I_1$ we expect it to be correct for $L'\!_1$ and execute
-correctly on $I'\!_1$. At a minimum we then expect $I'\!_1$ to produce warnings
-when features supported in $L_1$ / $L'\!_1$ but not $L_2$ are used. Often more
-usefully, $L'\!_1$ may backport language semantics from $L_2$, allowing $P$ to
-be altered to access features not available in $L_1$ (note that changing
-$L'\!_1$ implicitly requires changing $I'\!_1$). In the latter case, the TMV
+For such a TMV to be useful, we expect: at least $I'\!_O$ to extend $I_O$; and
+possibly $L'\!_O$ to extend $L_O$. Thus if $P$ is correct for $L_O$ and
+executes correctly on $I_O$ we expect it to be correct for $L'\!_O$ and execute
+correctly on $I'\!_O$. At a minimum we expect $I'\!_O$ to produce warnings
+when features supported in $L_O$ / $L'\!_O$ but not $L_N$ are used. Often more
+usefully, $L'\!_O$ may backport language semantics from $L_N$, allowing $P$ to
+be altered to access features not available in $L_O$ (note that changing
+$L'\!_O$ implicitly requires changing $I'\!_O$). In the latter case, the TMV
 implicitly defines an `intermediate' language whose semantics can be informally
-thought of as `between' those of $L_1$ and $L_2$. A program $P$ that has been
-modified to $P'$ for $L'\!_1$ may no longer be correct for either $L_1$ or
-$L_2$, though it should break in fewer ways under $L'\!_1$ and $I'\!_2$ than
-under $L_2$ and $I_2$.
+thought of as `between' those of $L_O$ and $L_N$. A program $P$ that has been
+modified to $P'$ for $L'\!_O$ may no longer be correct for either $L_O$ or
+$L_N$, though $P'$ should should break in fewer ways under $L_N$ and $I_N$
+than $P$.
 
-Defining a TMV $T_2$ or $L_2$ is similar, though for the TMV to be useful,
-$L'\!_2$ must forward port language semantics from $L_1$. Doing so allows
-$I'\!_2$ to warn when such features are used.
+Defining a TMV $T_N$ or $L_N$ is similar, though for the TMV to be useful,
+$L'\!_N$ must forward port language semantics from $L_O$. Doing so allows
+$I'\!_N$ to warn when such features are used.
 
 
 \section{XYZ}
