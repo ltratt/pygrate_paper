@@ -7,9 +7,8 @@
 \begin{abstract}
 \noindent
 Many changes one might wish to make to a programming language break existing
-programs, causing disruption and complaint amongst users. Over time, there
-is a tendency for ever more of a language to be considered unchangeable,
-causing the language to slowly ossify.
+programs, causing disruption and complaint amongst users. Over time, this
+causes ever more of a language to be considered unchangeable.
 
 In this paper, we
 consider a notably disruptive change to a mainstream programming language:
@@ -17,10 +16,10 @@ the transition from Python 2 to Python 3. We introduce
 the concept of \emph{Temporary Migration Variants} (TMV) --- intermediate
 language versions which allow
 code to be gradually migrated until the TMV is
-no longer needed. We implement TMVs for both CPython 2.x and CPython 3.x which
-allow code to run with forward/backward compatible fixes and
+no longer needed. We implement TMVs for both CPython 2.x and CPython 3.x,
+allowing code to run with forward/backward compatible fixes and
 warnings. Our simple TMVs, though neither complete or perfect, suggest that
-it may be possible to keep languages evolving by providing the ability
+it is possible to keep languages evolving by providing the ability
 for users to gradually migrate their code from one version to another.
 \end{abstract}
 
@@ -29,33 +28,38 @@ for users to gradually migrate their code from one version to another.
 
 Programming languages evolve, either to fix existing imperfections, or because
 of changes in the wider computing context. However, users -- for whom programming
-languages are generally a means rather than an end -- often resist evolution,
+languages are generally a means rather than an end -- often resist language evolution,
 either because they worry that the language will become too complicated,
 or because their existing programs will no longer run correctly. In this paper
-we are motivated by the latter challenge: users often have large, long-lived
-codebases that are critical to their purposes and which they must keep running.
+we are motivated by the latter challenge: many users have large, long-lived
+codebases which they must keep running.
 
 Though rarely discussed in the literature, there are many instances in
 programming language history of users forcing a language's designers to
-reconsider breaking changes. There are also instances, though harder to quantify,
-of languages scaring away potential users after developing a reputation for
-frequent breaking changes.
+reconsider breaking changes, often in the early stages of design.
+There are also instances, though harder to quantify, of languages
+scaring away potential users after developing a reputation for `too frequent'
+breaking changes. Those languages which continue to evolve tend to do so by
+adding new features which do not affect existing programs, rather than changing
+or removing existing features. This inevitably means that some kinds of
+language evolution, though highly desirable in theory, are perceived as too
+disruptive in practise for users to be tolerated. Many aspects of languages
+tend to ossify as a result.
 
-Perhaps surprisingly, there are few automated tools available to assist in
-migrating programs between language versions. Some languages ship with tools
+An obvious solution to this problem is to automatically migrate programs as the
+underlying language changes. Perhaps surprisingly, there are few automated
+tools available to assist to do so. Some languages ship with tools
 (e.g.~Python's \texttt{2to3} tool or Rust's \texttt{cargo
-fix}) that can fix some changes, though typically only simple syntactic
-changes.
-
-Our inability to evolve programs as languages change imposes costs on languages:
-some kinds of evolution, though highly desirable, are perceived as too disruptive
-for users to be tolerated. Many aspects of languages tend to ossify as a result.
+fix}) that can fix some changes, though these are typically restricted to
+changes that can be detected syntactically, or with minimal static analysis.
+As we shall see later, the effects of many language changes on a given program
+can only be detected dynamically.
 
 In this paper we introduce the concept of
 \emph{Temporary Migration Variants}: variants of the `old' and `new'
-versions of a language which enable smoother migration of programs between the two. As well
-as traditional compile-time warnings of incompatibilities, TMVs aim to
-deal with changes which only affect run-time.
+versions of a language which reduce \emph{migration friction}. As well
+as traditional static (i.e.~`compile-time') warnings of incompatibilities, TMVs aim to
+deal with changes which can only be detected dynamically (i.e.~`run time').
 Features can be backwards or forward ported between both versions, warning users of
 unsupported, or changed, features while still allowing programs to run. Once
 all warnings for a given program are fixed, the TMVs have done their job, and
@@ -66,11 +70,12 @@ the user can move wholesale to the `new' version of the language.
   \includegraphics[width=0.8\textwidth]{semantic_gap.pdf}
 \end{center}
 \caption{This paper's concepts in the context of Python 2 and Python 3. On
-the top row we see the status quo: Python 2 and Python 3 have a substantial semantic gap
-which users must manually bridge. In other words, they must take a Python 2
-program, and repeatedly alter it until it eventually runs correctly under Python 3:
-for much of this process the program either cannot run at all, or only runs
-briefly before crashing.
+the top row we see the status quo: Python 2 and Python 3 have a substantial semantic gap.
+Users who wish to migrate their programs from Python 2 to Python 3 must manually
+bridge this gap. This involves running the program, detecting
+undesirable changes (not all of which manifest as simple crashes), fixing
+them, and then trying again. For much of this process the program will only
+partly execute, making it difficult to understand the full effect of any changes made.
 On the middle row we have the Platonic ideal of TMVs: variants of Python 2 and
 Python 3 that have no semantic gap, and thus allow the smoothest possible migration
 between the two. On the bottom row we have the reality of the \pygratetwo and
@@ -81,15 +86,15 @@ remove all sources of migration friction.}
 \label{fig:semantic_gap}
 \end{figure}
 
-In this paper we show how TMVs can ease \emph{migration friction} in the face of the most
+As a concrete case study, we explore TMVs in the face of the most
 disruptive change to a mainstream language in living memory: the transition
 from Python 2 to Python 3. We create two TMVs: \pygratetwo, a variant of
 CPython 2.7 which warns when users use features that are missing or
 incompatible in Python 3.x, and which backports some features from Python 3.x;
 and \pygratethree, a variant of CPython 3.12 which forwards ports some features
-from Python 2.x, warning when they are used. In essence, \pygratetwo and
-\pygratethree significantly narrow the semantic gap between Python 2 and Python 3: it
-means that programs can be kept running during most of the migration process,
+from Python 2.x, warning when they are used. \pygratetwo and
+\pygratethree significantly narrow the semantic gap between Python 2 and Python 3,
+allowing users to keep programs running during most of the migration process,
 though there is still a semantic gap between \pygratetwo and \pygratethree (see
 \cref{fig:semantic_gap} for a visualisation of this idea). We migrate
 several programs, including \emph{Twisted}, an event-driven networking engine
@@ -98,10 +103,9 @@ migration.
 
 This paper thus serves two purposes: it introduces TMVs and provides a case study
 of their use. Although we do not want to over-generalise from a single
-example, \pygratetwo and \pygratethree suggest that TMVs meaningfully
-smooth migration. This concept may prove useful for other languages, including
-for languages which are very different from
-Python, in future migrations.
+example, \pygratetwo and \pygratethree suggest that TMVs meaningfully reduce
+migration friction. This concept may prove useful for other languages, including
+for languages which are very different from Python, in future migrations.
 
 
 \section{The Migration Challenge}
@@ -119,9 +123,9 @@ described as `interpreted' languages, most implementations of languages like
 Python first compile programs to another representation (sometimes called
 `bytecode') which they then use as a basis for execution.} with Python 3,
 reporting a syntax error. Python 2 has a \lstinline{print} statement built-in
-to the language's grammar: Python 3 has no such construct in the grammar.
+to the language's grammar, but Python 3 does not.
 Instead a global \lstinline{print} function is provided, which must be called
-using normal function call notation:
+in the same way as other functions:
 
 \begin{lstlisting}[language=Python]
 print(2+3)
@@ -173,7 +177,7 @@ the user at run-time (line 2). The value of that string is then used to
 create, or if it already exists alters, a global variable,
 assigning to it the value of \lstinline{xyz} (line 3). Finally, the current value
 of the \lstinline{cmp} global variable is printed out (line 4). For all but one
-user inputs, this will print \lstinline{<built-in function cmp>} --- but if the
+user input, this will print \lstinline{<built-in function cmp>} --- but if the
 user happens to enter the string \lstinline{cmp} then it will print out
 \lstinline{xyz}. The point of this example is not, to put it mildly, to showcase good programmer
 practise, but to show that Python's highly dynamic nature defeats most seemingly
@@ -183,17 +187,18 @@ The difficulty of deriving a program's dynamic behaviour from a static
 examination presents a difficult choice for static migration tools such as
 \lstinline{2to3}. In this case, \lstinline{2to3} can either: assume that all
 uses of the name \lstinline{cmp} point to the global function, risking false
-positives; or assume that it can't tell, all but guaranteeing false negatives.
-Neither outcome is desirable, but arguably false positives are worse,
+positives; or assume that it can't tell, guaranteeing false negatives.
+Neither outcome is desirable, but false positives are arguably worse
 since they cause the user's source code to be incorrectly changed.
 Perhaps for this reason, \lstinline{2to3} (and other similar tools we are
 aware of) nearly always err on the side of caution, heavily favouring
 false negatives over false positives.
 
-The ease of migrating \lstinline{print}, and the challenges of migrating
-\lstinline{cmp}, between Python 2 and Python 3 highlight the fundamental
-challenge of language migration. Language designers can make changes (like
-\lstinline{print}) that can be statically detected and fixed with little fear
+The ease of migrating \lstinline{print}, and the difficulty of migrating
+\lstinline{cmp}, between Python 2 and Python 3 show the opportunities and
+challenges that language designers must consider when evolving a language.
+Those changes (like
+\lstinline{print}) that can be statically detected and fixed can be made with little fear
 of substantial user complaint. However, changes which can only be detected
 dynamically are far more dangerous. This heavily constrains the possible
 changes that most language designers will consider plausible.
