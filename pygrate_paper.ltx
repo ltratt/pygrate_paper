@@ -219,51 +219,56 @@ reasonably be detected dynamically. Our solution to this problem is the concept
 of \emph{Temporary Migration Variants}: implementations of the `old' and `new'
 versions of a language which narrow the semantic gap, helping ease the
 migration path. As we shall see, this basic concept can come in several flavours,
-though we explore only one in depth in this paper.
-
-
-\subsection{A Semi-Formal Definition of TMVs}
-
-\newcommand{\tmvlone}{$I'\!_1$\xspace}
-\newcommand{\tmvltwo}{$I'\!_2$\xspace}
+though we explore only one in depth in this paper. In the rest of this section
+we present a semi-formal definition of TMVs to better clarify some of the
+concepts we use in the rest of the paper.
 
 We define a \emph{programming language} (henceforth just `language') $L$ to
 have \emph{semantics} that are a combination of the definition of the `core'
 language (e.g.~syntax and dynamic execution rules) and its standard libraries.
 For a given language $L$ we have an `old' version of the language with
 semantics $L_O$ and a `new' version with semantics $L_N$. We have corresponding
-\emph{implementations} of each language $I_O$ and $I_N$. We assume that
-implementations faithfully implement a language's semantics.
+\emph{implementations} of each language $I_O$ and $I_N$. For brevities sake,
+we conflate `language' and `implementation` except in those cases where it is
+important to separate the two.
 
 The challenge we address is that an arbitrary program $P$ written for $L_O$ and
-which executes correctly on $I_O$ may not be correct for $L_N$ and thus break
-when executed on $I_N$. Programs may \emph{break} in three ways: they may fail
-compile-time checks (and thus not compile); they may run and \emph{abort}
-execution when they try to use a feature that has changed or been removed; or
-they may run and \emph{diverge} from the expected execution paths.
+may \emph{break} when executed on $L_N$: it may fail
+compile-time checks (and thus not compile); it may run and \emph{abort}
+execution when it tries to use a feature that has changed or been removed; or
+it may run and \emph{diverge} from the expected execution path.
 
 TMVs are variants of both a language's semantics and its corresponding
-implementation. For example, if our starting point is $L_O$ and $I_O$, then
-defining a TMV requires defining new semantics
-$L'\!_O$ and a new implementation $I'\!_O$.
+implementation. For example, if our starting point is $L_O$ then
+defining a TMV requires defining a `new' language $L'\!_O$. At the very
+least, we expect $L'\!_O$ to produce warnings when a program uses features
+not supported in $L_N$. We also generally expect $L'\!_O$ to (fully or
+partially) backport features from $L_N$, at which point $L'\!_O$ becomes
+a true `intermediate' language. A program $P$ written for $L_O$ that has
+been modified to $P'$ for $L'\!_O$ may no longer be correct for either $L_O$,
+and may not yet be fully correct for $L_N$ (though, relative to $P$, $P'$
+should should break in fewer ways under $L_N$ and $I_N$).
 
-For such a TMV to be useful, we expect: at least $I'\!_O$ to extend $I_O$; and
-possibly $L'\!_O$ to extend $L_O$. Thus if $P$ is correct for $L_O$ and
-executes correctly on $I_O$ we expect it to be correct for $L'\!_O$ and execute
-correctly on $I'\!_O$. At a minimum we expect $I'\!_O$ to produce warnings
-when features supported in $L_O$ / $L'\!_O$ but not $L_N$ are used. Often more
-usefully, $L'\!_O$ may backport language semantics from $L_N$, allowing $P$ to
-be altered to access features not available in $L_O$ (note that changing
-$L'\!_O$ implicitly requires changing $I'\!_O$). In the latter case, the TMV
-implicitly defines an `intermediate' language whose semantics can be informally
-thought of as `between' those of $L_O$ and $L_N$. A program $P$ that has been
-modified to $P'$ for $L'\!_O$ may no longer be correct for either $L_O$ or
-$L_N$, though $P'$ should should break in fewer ways under $L_N$ and $I_N$
-than $P$.
+Defining a TMV for $L_N$ is subtly different. For $L'\!_N$ to be useful, it
+must forward port (fully or partially) features from $L_O$. Doing so allows
+$L'\!_N$ to warn when such features are used. In other words, it doesn't make
+sense for $L'\!_N$ to produce warnings if it has not at least partly forwarded
+the feature it is warning about.
 
-Defining a TMV $T_N$ or $L_N$ is similar, though for the TMV to be useful,
-$L'\!_N$ must forward port language semantics from $L_O$. Doing so allows
-$I'\!_N$ to warn when such features are used.
+It may not be obvious why it is useful to have both $L'\!_O$ and $L'\!_N$ ---
+indeed, we at first assumed that only $L'\!_O$ was really necessary. However,
+we eventually realised that false positives on $I'\!_P$ are common, because $P$
+will rely on libraries for $L_O$ for which no migrated version exists. In
+contrast, warnings on $L'\!_N$ are rarely false positives, since it is unlikely
+that someone would try migrating $P$ before or until the associated library is
+migrated. See \laurie{Section XYZ} for an example.
+
+Although our definition of TMVs has deliberately presented them as two
+absolutes ($L'\!_O$ and $L'\!_N$), partly for simplicity, and partly because
+that is how our case study is structured. However, conceptually, there is no
+reason that one could not have multiple TMVs between $L_O$ and $L_N$: when a
+particularly disruptive change occurs, it may be useful, perhaps even
+necessary, to migrate in stages. 
 
 
 \section{XYZ}
