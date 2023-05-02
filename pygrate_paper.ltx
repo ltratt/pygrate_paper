@@ -330,14 +330,109 @@ with better modularity or change the implementation to be modular.
 
 \subsection{Warning Anatomy}
 
-Warnings are implemented as custom exceptions in both Python 2 and 3, thereby introducing new exception classes
-\lstinline{Py2XWarning} and \lstinline{Py3xWarning} respectively tied to their corresponding flags, instead of 
-using a generic \lstinline{Deprecation} type.
+Warnings are implemented as custom exceptions in both \pygratetwo and \pygratethree, 
+thereby introducing new exception classes \lstinline{Py2xWarning} and \lstinline{Py3xWarning} 
+respectively tied to their corresponding flags, instead of  using a generic 
+\lstinline{Deprecation} type.
 
-\joannah{This is a big one, I have clipped to hint where I have reached but I am still writing the remaining section
-and dont feel like commmiting what I have, its likely to change}
+The CPython warnings module is extended to support compatibility warnings that capture 
+the warning message, potential fix and the level of the stack where the warning occurs. 
+The stack level helps us with other aspects related to dynamically and precisely warning 
+for certain changes where static warning is hard to achieve. The warning is however formatted 
+in a more useful way for display to the user to include even optionally a filename and line 
+number in addition to the message and fix in the following default format:
 
+\lstinline{<Py3xWarning>: <message>: <fix>}
 
+In the context of a language like Python, warnings are emitted at any phase of the interpreter. 
+Warnings are emitted on abstractions during scanning, parsing, and generating the symbol table 
+as well as in the standard library. When generating and processing the syntax as tokens, we inspect the tokens to identify any 
+incompatible token of interest for warning by performing basic string comparison. Likewise, 
+during parsing, we identify any syntax by inspecting the nodes of the abstract syntax tree, 
+and checking for any conditions in the nodes that require compatibility warnings:
+
+\begin{lstlisting}[language=Python]
+# Warn by inspecting tokens
+c = tok_nextc(tok);
+if (c == 'r' || c == 'R') {
+  if (Py_Py3XWarningFlag) {
+    warn()
+  }
+}
+#warn by inspecting the AST
+ch = CHILD(ch, 1);
+if (NCH(ch) != 1) {
+  if (Py_Py3kWarningFlag){
+    warn()                  
+}
+\end{lstlisting}
+
+Warnings that relate to list comprehension and generators are much easier and accurately 
+tracked when generating the symbol table, therefore as we visit the statement blocks, 
+we inspect the statements in the block to check for any syntax or semantics that require 
+warning. Finally warnings are emitted in the standard library methods directly for 
+especially deprecated or renamed modules, written in either Python or C:
+
+\begin{lstlisting}[language=Python]
+#warn while building the symbol table
+VISIT_IN_BLOCK(st, expr, elt, (void*)e);
+  if (Py_Py3kWarningFlag && st->st_cur->ste_generator) {
+    warn()
+        exit_block();   
+  }
+#warn in the standard library
+#stringobject.py
+static PyObject *
+string_concat(register PyStringObject *a, register PyObject *bb)
+{
+	...
+  if (Py_Py3kWarningFlag){
+		warn()
+  }
+}
+\end{lstlisting}
+
+Most warnings are easy to emit by \emph{static} inspection of the syntax while others require
+Some extra processing to dynamically and accurately extract the correct information required 
+for both the warning and the fix. An example of easy static inspection is the not equal 
+statement:
+
+\begin{lstlisting}[language=Python]
+int c2 = tok_nextc(tok);
+int token = PyToken_TwoChars(c, c2);
+if (Py_Py3kWarningFlag && token == NOTEQUAL && c == '<') {
+  if (PyErr_WarnExplicit(PyExc_Py3xWarning,
+                         "<> not supported in 3.x; use !=",
+                          tok->filename, tok->lineno,
+                          NULL, NULL)){....}
+\end{lstlisting}
+
+By inspecting syntax from the outputs of the tokenizer, we can issue a warning when we 
+encounter the “<>” token quite easily. On the other hand when warning for the leaking 
+variable in list comprehension, we have do some extra processing to track the variable 
+in the list comp, in relation to the function where it is defined, to correctly warn 
+about the free variable:
+
+\begin{lstlisting}[language=Python]
+if (Py_Py3kWarningFlag) {
+       nc = asdl_seq_LEN(body);
+       for (i = 0; i < nc; i++) {
+           st = (stmt_ty)asdl_seq_GET(body, i);
+           islistcomp = compiler_islistcomp(st);
+           if (islistcomp) {
+               lstcomp = asdl_seq_GET(body, i);
+               var_of_int = asdl_seq_GET(lstcomp, 3);
+               for (y=i; y < nc; y++) {
+                   var_st = (stmt_ty)asdl_seq_GET(body, y);
+                   if ((var_st == var_of_int) &&
+                       !ast_3x_warn(c, n, "This listcomp does not leak a variable in 3.x",
+                                    "assign the variable before use"))
+                       return 0;
+               }
+           }
+       } 
+   }
+\end{lstlisting}
 
 \section{Related work}
 
