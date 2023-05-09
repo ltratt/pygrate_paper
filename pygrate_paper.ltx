@@ -29,7 +29,7 @@ for users to gradually migrate their code from one version to another.
 Programming languages evolve, either to fix existing imperfections, or because
 of changes in the wider computing context. However, users -- for whom programming
 languages are generally a means rather than an end -- often resist language evolution,
-either because they worry that the language will become too complicated,
+either because they worry that the language will become too complex,
 or because their existing programs will no longer run correctly. In this paper
 we are motivated by the latter challenge: many users have large, long-lived
 codebases which they must keep running.
@@ -39,14 +39,12 @@ programming language history of users forcing a language's designers to
 reconsider breaking changes, often in the early stages of design.
 There are also instances, though harder to quantify, of languages
 scaring away potential users after developing a reputation for `too frequent'
-breaking changes. Those languages which continue to evolve tend to do so by
-adding new features which do not affect existing programs, rather than changing
-or removing existing features. This inevitably means that some kinds of
-language evolution, though highly desirable in theory, are perceived as too
-disruptive in practise for users to be tolerated. Many aspects of languages
-tend to ossify as a result.
+breaking changes. Language evolution thus ends up split in two: it
+is relatively easy to add new features that don't interfere with existing
+programs; but it is very hard to change existing features. This split
+inevitably means that large parts of a language ossify.
 
-An obvious solution to this problem is to automatically migrate programs as the
+An obvious way out of this conundrum is to automatically migrate programs as the
 underlying language changes. Perhaps surprisingly, there are few automated
 tools available to assist to do so. Some languages ship with tools
 (e.g.~Python's \texttt{2to3} tool or Rust's \texttt{cargo
@@ -93,9 +91,8 @@ CPython 2.7 which warns when users use features that are missing or
 incompatible in Python 3.x, and which backports some features from Python 3.x;
 and \pygratethree, a variant of CPython 3.12 which forwards ports some features
 from Python 2.x, warning when they are used. \pygratetwo and
-\pygratethree significantly narrow the semantic gap between Python 2 and Python 3,
-allowing users to keep programs running during most of the migration process,
-though there is still a semantic gap between \pygratetwo and \pygratethree (see
+\pygratethree narrow, though do not fully remove, the semantic gap between Python 2 and Python 3,
+allowing users to keep programs running during most of the migration process (see
 \cref{fig:semantic_gap} for a visualisation of this idea). We migrate
 several programs, including \emph{Twisted}, an event-driven networking engine
 implemented in Python, showing that our TMVs do meaningfully ease
@@ -183,7 +180,7 @@ user happens to enter the string \lstinline{cmp} then it will print out
 practise, but to show that Python's highly dynamic nature defeats most seemingly
 reasonable static analyses.
 
-The difficulty of deriving a program's dynamic behaviour from a static
+The impossibility of fully deriving a program's dynamic behaviour from a static
 examination presents a difficult choice for static migration tools such as
 \lstinline{2to3}. In this case, \lstinline{2to3} can either: assume that all
 uses of the name \lstinline{cmp} point to the global function, risking false
@@ -224,7 +221,7 @@ we present a semi-formal definition of TMVs to better clarify some of the
 concepts we use in the rest of the paper.
 
 We define a \emph{programming language} (henceforth just `language') $L$ to
-have \emph{semantics} that are a combination of the definition of the `core'
+have \emph{semantics} that are a combination of the `core'
 language (e.g.~syntax and dynamic execution rules) and its standard libraries.
 For a given language $L$ we have an `old' version of the language with
 semantics $L_O$ and a `new' version with semantics $L_N$. We have corresponding
@@ -232,24 +229,29 @@ semantics $L_O$ and a `new' version with semantics $L_N$. We have corresponding
 we conflate `language' and `implementation` except in those cases where it is
 important to separate the two.
 
-The challenge we address is that an arbitrary program $P$ written for $L_O$ and
+The challenge we address is that an arbitrary program $P$ written for $L_O$
 may \emph{break} when executed on $L_N$: it may fail
 compile-time checks (and thus not compile); it may run and \emph{abort}
 execution when it tries to use a feature that has changed or been removed; or
 it may run and \emph{diverge} from the expected execution path.
 
 TMVs are variants of both a language's semantics and its corresponding
-implementation. For example, if our starting point is $L_O$ then
+implementation. TMVs can be defined for both $L_O$ and $L_N$ though
+there are subtle asymmetries in what the resulting TMVs can sensibly do.
+
+If our starting point is $L_O$ then
 defining a TMV requires defining a `new' language $L'\!_O$. At the very
 least, we expect $L'\!_O$ to produce warnings when a program uses features
 not supported in $L_N$. We also generally expect $L'\!_O$ to (fully or
 partially) backport features from $L_N$, at which point $L'\!_O$ becomes
 a true `intermediate' language. A program $P$ written for $L_O$ that has
-been modified to $P'$ for $L'\!_O$ may no longer be correct for either $L_O$,
-and may not yet be fully correct for $L_N$ (though, relative to $P$, $P'$
-should should break in fewer ways under $L_N$ and $I_N$).
+been modified to $P'$ for $L'\!_O$ may no longer be correct for $L_O$ or
+$L_N$ (though, relative to $P$, we would expect $P'$
+to break in fewer ways under $L_N$ and $I_N$).
 
-Defining a TMV for $L_N$ is subtly different. For $L'\!_N$ to be useful, it
+If our starting point is $L_N$ then a TMV $L'\!_N$ does not meaningfully have
+the option to simply produce warnings for features not supported in $L_O$,
+since those features are unsupported by definition. Instead, for $L'\!_N$ to be useful, it
 must forward port (fully or partially) features from $L_O$. Doing so allows
 $L'\!_N$ to warn when such features are used. In other words, it doesn't make
 sense for $L'\!_N$ to produce warnings if it has not at least partly forwarded
@@ -258,17 +260,18 @@ the feature it is warning about.
 It may not be obvious why it is useful to have both $L'\!_O$ and $L'\!_N$ ---
 indeed, we at first assumed that only $L'\!_O$ was really necessary. However,
 we eventually realised that false positives on $I'\!_P$ are common, because $P$
-will rely on libraries for $L_O$ for which no migrated version exists. In
+will rely on libraries for $L_O$ for which no partially migrated version exists
+(though, in many cases, a fully migrated version for $L_N$ does exist). In
 contrast, warnings on $L'\!_N$ are rarely false positives, since it is unlikely
-that someone would try migrating $P$ before or until the associated library is
+that someone would try migrating $P$ before, or until, the associated library is
 migrated. See \laurie{Section XYZ} for an example.
 
-Although our definition of TMVs has deliberately presented them as two
+The definition of TMVs above has deliberately presented them as two
 absolutes ($L'\!_O$ and $L'\!_N$), partly for simplicity, and partly because
 that is how our case study is structured. However, conceptually, there is no
 reason that one could not have multiple TMVs between $L_O$ and $L_N$: when a
 particularly disruptive change occurs, it may be useful, perhaps even
-necessary, to migrate in stages. 
+necessary, to migrate in stages.
 
 
 \section{XYZ}
