@@ -91,12 +91,13 @@ CPython 2.7 which warns when users use features that are missing or
 incompatible in Python 3.x, and which backports some features from Python 3.x;
 and \pygratethree, a variant of CPython 3.12 which forwards ports some features
 from Python 2.x, warning when they are used. \pygratetwo and
-\pygratethree narrow, though do not fully remove, the semantic gap between Python 2 and Python 3,
-allowing users to keep programs running during most of the migration process (see
+\pygratethree narrow the semantic gap between Python 2 and Python 3,
+allowing users to keep programs running during much of the migration process (see
 \cref{fig:semantic_gap} for a visualisation of this idea). We migrate
 several programs, including \emph{Twisted}, an event-driven networking engine
 implemented in Python, showing that our TMVs do meaningfully ease
-migration.
+migration, even though neither yet supports all the differences between Python
+2 and Python 3.
 
 This paper thus serves two purposes: it introduces TMVs and provides a case study
 of their use. Although we do not want to over-generalise from a single
@@ -274,28 +275,25 @@ particularly disruptive change occurs, it may be useful, perhaps even
 necessary, to migrate in stages.
 
 
-\section{XYZ}
+\section{\pygratetwo and \pygratethree}
 
-To smoothen migration from older to newer languages, \emph{Temporary Migration Variants} are versions
-of the old and new language, with warnings to signal and alert of any feature incompatibilities. For Python, 
-we modify the Python 2.7 and Python 3.8 versions, with useful warnings, containing both an error message 
-and potential fix for each incompatible syntax encountered for the code base, in two variants,  \pygratetwo 
-and \pygratethree respectively.
+In this paper, we use the challenge of migrating code from Python 2 to Python 3
+as a concrete case study. We introduce two TMVs: \pygratetwo, a modification of
+CPython 2.7.\laurie{which point version exactly?}; and \pygratethree, a
+modification of CPython 3.\laurie{which version exactly?}.
 
-Executing warnings can introduce unwanted overhead for default language settings. To remedy  this behavior, 
-we instead introduce optional flags \lstinline{{-2} for the \pygratethree variant and \lstinline{{-3} for 
-the \pygratetwo variant. This way the variants do not have to be completely throw-away.
+Both TMVs provide various warnings and, when possible, suggest fixes.
+\pygratetwo warns when features present in Python 2 are not present, or work
+differently, in Python 3; \pygratetwo also backports some features from Python
+3 so that users can fix more warnings while still having a running program.
+\pygratethree forward ports features from Python 2 and warns when they are
+used. As shown in \cref{fig:semantic_gap}, \pygratetwo and \pygratethree reduce
+the semantic gap between Python 2 and Python 3, though they do not fully remove
+it --- we estimate we have reduced the semantic gap to about half its original
+size.
 
-As we describe in the sequel, because of the complexity in incompatibilities between Python 2 and 3, it 
-was not possible to cover most of the cases through static analysis of the code. We instead use more 
-dynamic methodologies to abate teasing apart and identifying the incompatibility, warning precisely 
-with a more specific and relevant fix.
 
-Warnings are generated at all stages of the compilation process, by introspecting mostly higher order 
-abstractions, from for example the grammar, the abstract syntax tree, the compiler and the symbol 
-table to correctly identify both syntactic and semantic incompatibilities.
-
-\subsection{Design Principle}
+\subsection{Overview}
 
 The goal of warnings in both  \pygratetwo and \pygratethree  is to give warnings with useful information 
 on a like the warning message, fix and line number that the user can then use to adjust their code in 
@@ -305,8 +303,6 @@ With these warnings, the assumption is that the user runs all their code under  
 warnings using the provided hints on potential fixes. After which, they can run their code under \pygratethree, 
 fixing all warnings again. At which point we hope that they can run their code unchanged in python3.
 
-The general rationale is to by default issue warnings in \pygratetwo for as many cases as is technically 
-possible. In some exceptions we decide to move the warnings to \pygratethree under two circumstances: 
 The general rationale is to by default issue warnings in \pygratetwo for as many cases as is technically 
 possible. In some exceptions we decide to move the warnings to pygrate3 under two circumstances: 1) 
 the need for precision and 2) implementation constraints.
@@ -330,6 +326,14 @@ other parts introduce complexity.
 Modular code is generally easier to accommodate when warning compared to slots. When we have 
 to warn for features exposed as slots we have to either look for a version (\pygratetwo or \pygratethree) 
 with better modularity or change the implementation to be modular.
+
+Executing warnings can introduce unwanted overhead for default language settings. To remedy  this behavior, 
+we instead introduce optional flags \lstinline{{-2} for the \pygratethree variant and \lstinline{{-3} for 
+the \pygratetwo variant. This way the variants do not have to be completely throw-away.
+
+Warnings are generated at all stages of the compilation process, by introspecting mostly higher order 
+abstractions, from for example the grammar, the abstract syntax tree, the compiler and the symbol 
+table to correctly identify both syntactic and semantic incompatibilities.
 
 \subsection{Warning Anatomy}
 
