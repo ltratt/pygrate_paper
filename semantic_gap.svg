@@ -25,7 +25,7 @@
      inkscape:document-units="mm"
      showgrid="true"
      inkscape:zoom="1.1893044"
-     inkscape:cx="409.90347"
+     inkscape:cx="338.85353"
      inkscape:cy="248.46456"
      inkscape:window-width="1842"
      inkscape:window-height="1231"
@@ -147,7 +147,7 @@
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:end;text-anchor:end;stroke-width:0.264583"
          x="35.951805"
          y="206.31299"
-         id="tspan3021-5">pygrate</tspan></text>
+         id="tspan3021-5">Pygrate</tspan></text>
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.95;stroke-dasharray:none"
        id="rect283-3"
@@ -207,37 +207,37 @@
        id="rect283-7-6"
        width="39.6875"
        height="10.583333"
-       x="59.266663"
+       x="57.149998"
        y="196.32086" />
     <text
        xml:space="preserve"
        style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
-       x="79.009636"
+       x="76.892982"
        y="203.4646"
        id="text339-6-1"><tspan
          sodipodi:role="line"
          id="tspan337-7-8"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';text-align:center;text-anchor:middle;stroke-width:0.264583"
-         x="79.009636"
-         y="203.4646">pygrate2</tspan></text>
+         x="76.892982"
+         y="203.4646">Pygrate2</tspan></text>
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.95;stroke-dasharray:none"
        id="rect283-3-2-2"
        width="39.6875"
        height="10.583333"
-       x="107.47922"
+       x="109.59589"
        y="196.31567" />
     <text
        xml:space="preserve"
        style="font-size:6.35px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
-       x="127.22221"
+       x="129.33888"
        y="203.45941"
        id="text339-0-2-9"><tspan
          sodipodi:role="line"
          id="tspan337-8-6-6"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.35px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';text-align:center;text-anchor:middle;stroke-width:0.264583"
-         x="127.22221"
-         y="203.45941">pygrate3</tspan></text>
+         x="129.33888"
+         y="203.45941">Pygrate3</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.465;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow1);marker-end:url(#marker1674)"
        d="m 83.343749,164.04166 c 25.135421,1e-5 29.104171,1e-5 41.010421,0"
