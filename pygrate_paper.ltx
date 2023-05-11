@@ -277,7 +277,6 @@ necessary, to migrate in stages.
 
 \section{\pygratetwo and \pygratethree}
 
-
 \begin{figure}
   \caption{\laurie{joannah: it would be great to give some small concrete
   examples of the pygrates in action. if we can find one small function which
@@ -287,6 +286,31 @@ necessary, to migrate in stages.
   python3 which means that fixing the warning gives you a program which is
   valid pygrate2 but not python 3. the second would be pygrate3 code which uses
   something forward ported from python2, and shows the warning.}}
+\end{figure}
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.8\columnwidth}
+         \centering
+         \includegraphics[width=\columnwidth]{pygratetwo_ex.pdf}
+         \caption{An example \pygrate2 warning for the Python 2 \lstinline{file()} method.}
+         \label{fig:pygratetwo_example}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.8\columnwidth}
+         \centering
+         \includegraphics[width=\columnwidth]{pygratethree_ex.pdf}
+         \caption{An example \pygrate3 warning for the Python 2 \lstinline{cmp()} method.}
+         \label{fig:pygratethree_example}
+     \end{subfigure}
+      \caption{We show a warning for the \lstinline{file()} method that is deprecated
+      in Python 3, and suggests to fix the code by using the \lstinline{open()} method that is neutral for this case. 
+      This is an example where \lstinline{open()} is a backport from \pygratethree, facilitating a slow migration 
+      where \lstinline{open()} mutually exists with \lstinline{file()} in Python 2. For context the \lstinline{cmp}
+      function used as example in Figure \ref{fig:pygratethree_example} was replaced by multiple comparison
+      operators in Python 3 like \lstinline{>, <, =}, for the user code to work, \lstinline{cmp()} is 
+      also forward ported to Pygrate 3 to faciliate the warning.}
+      \label{fig:pygrate_examples}
 \end{figure}
 
 In this paper, we use the challenge of migrating code from Python 2 to Python 3
@@ -312,11 +336,33 @@ a realistic way, rather than syntax errors that just fail the code without any u
 
 With these warnings, the assumption is that the user runs all their code under  \pygratetwo, fixing all 
 warnings using the provided hints on potential fixes. After which, they can run their code under \pygratethree, 
-fixing all warnings again. At which point we hope that they can run their code unchanged in python3.
+fixing all warnings again. At which point we hope that they can run their code unchanged in python3. 
+
+Figure~\ref{fig:pygrate_examples} shows an example of the warnings shown in both \pygratetwo and \pygratethree.
+The case is Figure~\ref{} is a simpler case where for gentle migration, the method \lstinline{open()} is backported
+to \pygratetwo . The second case where \lstinline{cmp()} is forward ported is much more interesting. 
+There are about three flavors of \lstinline{cmp()}, the dunder method \lstinline{(__cmp__)} , the function, 
+\lstinline{cmp()} and the argument. I will describe each in the sequel. The dunder cmp requires that we replace 
+the \lstinline{_cmp__()} definition with the corresponding rich comparison operations 
+like \lstinline{__eg__ ,__lt__} etc. For the \lstinline{cmp()} function, since it was removed in Python 3, we h
+ave no option but to provide its improvised implementation for compatibility. 
+
+This maybe is where Python 3 needs a hack because if not, then I think the way the cmp() function is called 
+is different, on one hand it may be a stdlib function, no import required while if we have our own implementation
+in a utility library maybe an import is required which may require a conditional for Python 3. Also, sorting can use 
+a cmp argument which was removed in python 3. Solving this requires using the key function instead for all 
+uses of the cmp argument. Also a function cmp style wrapper function can be written similar 
+to \lstinline{functools.cmp_to_key()}. To conclude, for the dunder \lstinline{__cmp__} and \lstinline{cmp()} function 
+we have to issue warnings because they are not supported in Python 3 but we have to take care of the differences 
+where \lstinline{__ne__} delegates to \lstinline{__eq__}. Even the use on the cmp arguments needs a warning because 
+the cmp argument should be replaced with the key function. 
+
 
 The general rationale is to by default issue warnings in \pygratetwo for as many cases as is technically 
 possible. In some exceptions we decide to move the warnings to pygrate3 under two circumstances: 1) 
 the need for precision and 2) implementation constraints.
+
+\joannah{Laurie: Do we put our categorization table here?}
 
 Depending on what changed in either syntax or semantics between Python 2 and 3, it is possible 
 that warning in \pygratethree will give us an opportunity to warn more accurately, with 
@@ -451,6 +497,52 @@ if (Py_Py3kWarningFlag) {
        } 
    }
 \end{lstlisting}
+
+\section{Case Study}
+
+To demonstrate the significance of TMVs, by providing a case study, 
+discussing our insight of the autonomy achieved towards reducing 
+Migration friction. For this case study, we port the Twisted, a Python
+event-driven networking engine, that allows for easy custom network
+application prototyping.
+
+The main upstream fork of Twisted was ported to Python 3 about 
+5 years ago, so we searched back as far as May 2016, for an unported
+revision of the project to facilitate our porting work. In terms of complexity
+the revision we port contains the 19 modules supported by Twisted, and 
+had about 2663 tests skipped because they failed when the code ran on
+Python 3.
+
+Porting is done by first running the project tests on \pygratetwo, identifying
+and fixing any warnings, then running the tests on \pygratethree to identify 
+any pending warnings. With this methodology, the assumption is that the
+tests cover all the code paths in the project, which is usually the recommended
+case, that to start any migration work, thorough test coverage should be 
+achieved for a realistic port. Table~\ref{} has a breakdown of the modifications
+done to the code base for the major modules of the project.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{cccc}
+    Module name & Warnings issued & Impacted Tests & Total Tests \\ \midrule
+    Conch & 218 & 83 & 336 \\
+    Mail & 128 & 79 & 436 \\
+    words & 70 & 102 & 162 \\
+    logger & 182  & 8 & 182 \\ \bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Discussion}
+
+Much of porting Twisted is dealing with the complexities of strings, that did
+not fully manage to find autonomy for but in addition, we discuss other major 
+areas of porting that were not trivial to engineer warnings.
+
+\paragraph*{Strings and Bytes}
+
+
+
 
 \section{Related work}
 
